@@ -43,77 +43,95 @@ class qtype_manip_edit_form extends question_edit_form {
      */
     protected function definition_inner($mform) {
         // TODO: manip : ajouter un sélecteur d'expression régulière pour le choix de la question.
-        $mform->addElement('select', 'regexselection',
-                get_string('regexselection', 'qtype_manip'), array(
-                // TODO: manip - attention, c'est la chaîne "valeur" qui est sauvegardée dans la DB
-                0 => get_string('op1 (TODO)', 'qtype_manip'),
-                1 => get_string('op2 (TODO)', 'qtype_manip')));
+        /* $mform->addElement('select', 'regexselection',
+           get_string('regexselection', 'qtype_manip'), array(
+           // TODO: manip - attention, c'est la chaîne "valeur" qui est sauvegardée dans la DB
+           0 => get_string('regex_1', 'qtype_manip'),
+           1 => get_string('regex_2', 'qtype_manip'))); 
+         */
 
-        $mform->addElement('editor', 'feedbacktrue',
-                get_string('feedbacktrue', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
-        $mform->setType('feedbacktrue', PARAM_RAW);
+        $mform->addElement('text', 'regex', get_string('regex', 'qtype_manip'), array('size' => '75'));
+        $mform->setType('regex', PARAM_TEXT);
+        // TODO: donner de l'aide à propos des regex dans l'aide
+        $mform->addHelpButton('regex', 'regex', 'qtype_manip');
+        
+        // TODO: finir la connexion avec le menu déroulant (À TESTER!)
+        $qtype = question_bank::get_qtype('manip');
+        $mform->addElement('select', 'regex_select', 
+                get_string('regex', 'qtype_manip') .' (TODO)', $qtype->get_regex());
+        $mform->addHelpButton('regex_select', 'regex', 'qtype_manip');
 
-        $mform->addElement('editor', 'feedbackfalse',
-                get_string('feedbackfalse', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
-        $mform->setType('feedbackfalse', PARAM_RAW);
+        $mform->addElement('editor', 'feedbackcorrect', get_string('feedbackcorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
+        $mform->setType('feedbackcorrect', PARAM_RAW);
+        $mform->addHelpButton('feedbackcorrect', 'feedbackcorrect', 'qtype_manip');
+        
 
-        // $mform->addElement('header', 'multitriesheader',
-        //         get_string('settingsformultipletries', 'question'));
-
-        // $mform->addElement('hidden', 'penalty', 1);
-
-        // $mform->addElement('static', 'penaltymessage',
-        //         get_string('penaltyforeachincorrecttry', 'question'), 1);
-        // $mform->addHelpButton('penaltymessage', 'penaltyforeachincorrecttry', 'question');
+        $mform->addElement('editor', 'feedbackincorrect', get_string('feedbackincorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
+        $mform->setType('feedbackincorrect', PARAM_RAW);
+        $mform->addHelpButton('feedbackincorrect', 'feedbackincorrect', 'qtype_manip');
     }
+
+    // TODO: modifier le code ici pour que les choix de "réponse" soient "correct/incorrect".. ou autre.
+    // ...Si on veut permettre d'avoir des fractions spécifiques.
+//    protected function get_per_answer_fields($mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
+//        $repeated = array();
+//        $repeated[] = $mform->createElement('header', 'answerhdr', $label);
+//        $repeated[] = $mform->createElement('text', 'answer', get_string('answer', 'question'), array('size' => 80));
+//        $repeated[] = $mform->createElement('select', 'fraction', get_string('grade'), $gradeoptions);
+//        $repeated[] = $mform->createElement('editor', 'feedback', get_string('feedback', 'question'), array('rows' => 5), $this->editoroptions);
+//        $repeatedoptions['answer']['type'] = PARAM_RAW;
+//        $repeatedoptions['fraction']['default'] = 0;
+//        $answersoption = 'answers';
+//        return $repeated;
+//    }
 
     public function data_preprocessing($question) {
         $question = parent::data_preprocessing($question);
 
-// TODO: manip
-// adapter le code pour avoir goodanswer et wronganswer au lieu de true/false
-// enlever le champs qui spécifie la bonne réponse
-// ajouter un champs pour le choix de la regex à évaluer.
+        if (!empty($question->options->correct)) {
+            $correctanswer = $question->options->answers[$question->options->correct];
+            $question->correctanswer = ($correctanswer->fraction != 0);
 
-        if (!empty($question->options->trueanswer)) {
-            $trueanswer = $question->options->answers[$question->options->trueanswer];
-            $question->correctanswer = ($trueanswer->fraction != 0);
+            $draftid = file_get_submitted_draft_itemid('correctanswer');
+            $answerid = $question->options->correct;
 
-            $draftid = file_get_submitted_draft_itemid('trueanswer');
-            $answerid = $question->options->trueanswer;
-
-            $question->feedbacktrue = array();
-            $question->feedbacktrue['format'] = $trueanswer->feedbackformat;
-            $question->feedbacktrue['text'] = file_prepare_draft_area(
-                $draftid,             // draftid
-                $this->context->id,   // context
-                'question',           // component
-                'answerfeedback',     // filarea
-                !empty($answerid) ? (int) $answerid : null, // itemid
-                $this->fileoptions,   // options
-                $trueanswer->feedback // text
+            $question->feedbackcorrect = array();
+            $question->feedbackcorrect['format'] = $correctanswer->feedbackformat;
+            $question->feedbackcorrect['text'] = file_prepare_draft_area(
+                    $draftid, // draftid
+                    $this->context->id, // context
+                    'question', // component
+                    'answerfeedback', // filarea
+                    !empty($answerid) ? (int) $answerid : null, // itemid
+                    $this->fileoptions, // options
+                    $correctanswer->feedback // text
             );
-            $question->feedbacktrue['itemid'] = $draftid;
+            $question->feedbackcorrect['itemid'] = $draftid;
         }
 
-        if (!empty($question->options->falseanswer)) {
-            $falseanswer = $question->options->answers[$question->options->falseanswer];
+        if (!empty($question->options->incorrect)) {
+            $incorrectanswer = $question->options->answers[$question->options->incorrect];
 
-            $draftid = file_get_submitted_draft_itemid('falseanswer');
-            $answerid = $question->options->falseanswer;
+            $draftid = file_get_submitted_draft_itemid('incorrectanswer');
+            $answerid = $question->options->incorrect;
 
-            $question->feedbackfalse = array();
-            $question->feedbackfalse['format'] = $falseanswer->feedbackformat;
-            $question->feedbackfalse['text'] = file_prepare_draft_area(
-                $draftid,              // draftid
-                $this->context->id,    // context
-                'question',            // component
-                'answerfeedback',      // filarea
-                !empty($answerid) ? (int) $answerid : null, // itemid
-                $this->fileoptions,    // options
-                $falseanswer->feedback // text
+            $question->feedbackincorrect = array();
+            $question->feedbackincorrect['format'] = $incorrectanswer->feedbackformat;
+            $question->feedbackincorrect['text'] = file_prepare_draft_area(
+                    $draftid, // draftid
+                    $this->context->id, // context
+                    'question', // component
+                    'answerfeedback', // filarea
+                    !empty($answerid) ? (int) $answerid : null, // itemid
+                    $this->fileoptions, // options
+                    $incorrectanswer->feedback // text
             );
-            $question->feedbackfalse['itemid'] = $draftid;
+            $question->feedbackincorrect['itemid'] = $draftid;
+        }
+        
+        if (!empty($question->options->regex)) { 
+            // TODO: utiliser plutôt regex_select pour extraire le choix à partir du menu déroulant
+            $question->regex = $question->options->regex;
         }
 
         return $question;
@@ -122,4 +140,5 @@ class qtype_manip_edit_form extends question_edit_form {
     public function qtype() {
         return 'manip';
     }
+
 }
