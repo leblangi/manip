@@ -63,7 +63,7 @@ class qtype_manip_question extends question_graded_automatically {
     public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
         return question_engine::make_archetypal_behaviour('fileanalysis', $qa);
     }
-     */
+    */
     
     public function summarise_response(array $response) {
         //debugging('summarise_response');
@@ -98,12 +98,14 @@ class qtype_manip_question extends question_graded_automatically {
         debugging('is_complete_response');
         debugging('is_complete_response (1) :: '. var_export($response, true));
         
-        if (array_key_exists('attachement', $response) && is_object($response['attachment'])) {
-            $this->attachment = $response['attachment']->__toString();
-            return true;
-        }
-
-        return false;
+        return $response['attachment'] != null;
+        
+//        if (array_key_exists('attachement', $response) && is_object($response['attachment'])) {
+//            $this->attachment = $response['attachment']->__toString();
+//            return true;
+//        }
+//
+//        return false;
     }
     
     public function is_gradable_response(array $response) {
