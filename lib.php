@@ -20,7 +20,7 @@
  * @since      2.0
  * @package    qtype
  * @subpackage manip
- * @copyright  2012 Université de Montréal
+ * @copyright  2012 UniversitÃ© de MontrÃ©al
  * @author     gilles-philippe.leblanc@umontreal.ca
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

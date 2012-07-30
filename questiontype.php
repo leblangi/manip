@@ -34,6 +34,11 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_manip extends question_type {
+    
+    public function extra_question_fields() {
+        return array('question_manip', 'regex', 'correct', 'incorrect');
+    }
+    
     public function save_question_options($question) {
         global $DB;
         $result = new stdClass();
@@ -43,8 +48,7 @@ class qtype_manip extends question_type {
         $oldanswers = $DB->get_records('question_answers',
                 array('question' => $question->id), 'id ASC');
 
-// ****** DEBUT : TODO: manip - remplacer tout ça par la sauvegarde de la bonne regexp.
-        // Save the true answer - update an existing answer if possible.
+        // Save the correct answer - update an existing answer if possible.
         $answer = array_shift($oldanswers);
         if (!$answer) {
             $answer = new stdClass();
@@ -54,15 +58,15 @@ class qtype_manip extends question_type {
             $answer->id = $DB->insert_record('question_answers', $answer);
         }
 
-        $answer->answer   = get_string('true', 'qtype_manip');
-        $answer->fraction = $question->correctanswer;
-        $answer->feedback = $this->import_or_save_files($question->feedbacktrue,
+        $answer->answer   = 'correct'; //get_string('true', 'qtype_manip');
+        $answer->fraction = 1.0; // $question->correctanswer;
+        $answer->feedback = $this->import_or_save_files($question->feedbackcorrect,
                 $context, 'question', 'answerfeedback', $answer->id);
-        $answer->feedbackformat = $question->feedbacktrue['format'];
+        $answer->feedbackformat = $question->feedbackcorrect['format'];
         $DB->update_record('question_answers', $answer);
-        $trueid = $answer->id;
+        $correctid = $answer->id;
 
-        // Save the false answer - update an existing answer if possible.
+        // Save the incorrect answer - update an existing answer if possible.
         $answer = array_shift($oldanswers);
         if (!$answer) {
             $answer = new stdClass();
@@ -72,14 +76,13 @@ class qtype_manip extends question_type {
             $answer->id = $DB->insert_record('question_answers', $answer);
         }
 
-        $answer->answer   = get_string('false', 'qtype_manip');
-        $answer->fraction = 1 - (int)$question->correctanswer;
-        $answer->feedback = $this->import_or_save_files($question->feedbackfalse,
+        $answer->answer   = 'incorrect'; //get_string('false', 'qtype_manip');
+        $answer->fraction = 0.0; // 1 - (int)$question->correctanswer;
+        $answer->feedback = $this->import_or_save_files($question->feedbackincorrect,
                 $context, 'question', 'answerfeedback', $answer->id);
-        $answer->feedbackformat = $question->feedbackfalse['format'];
+        $answer->feedbackformat = $question->feedbackincorrect['format'];
         $DB->update_record('question_answers', $answer);
-        $falseid = $answer->id;
-// ***** FIN ******
+        $incorrectid = $answer->id;
 
         // Delete any left over old answer records.
         $fs = get_file_storage();
@@ -89,19 +92,21 @@ class qtype_manip extends question_type {
         }
 
         // Save question options in question_manip table
-        if ($options = $DB->get_record('question_manip', array('question' => $question->id))) {
-            // No need to do anything, since the answer IDs won't have changed
-            // But we'll do it anyway, just for robustness
-            $options->regex = $regex;
+        if ($options = $DB->get_record('question_manip', array('questionid' => $question->id))) {
+            $options->regex = $question->regex;
+            $options->correct = $correctid;
+            $options->incorrect = $incorrectid;
             $DB->update_record('question_manip', $options);
         } else {
             $options = new stdClass();
-            $options->question    = $question->id;
-            $options->falseanswer = $regex;
+            $options->questionid    = $question->id;
+            $options->regex = $question->regex;
+            $options->correct = $correctid;
+            $options->incorrect = $incorrectid;
             $DB->insert_record('question_manip', $options);
         }
 
-        $this->save_hints($question);
+        // $this->save_hints($question); // TODO: à confirmer - pas de hints a priori...
 
         return true;
     }
@@ -114,7 +119,7 @@ class qtype_manip extends question_type {
         // Get additional information from database
         // and attach it to the question object
         if (!$question->options = $DB->get_record('question_manip',
-                array('question' => $question->id))) {
+                array('questionid' => $question->id))) {
             echo $OUTPUT->notification('Error: Missing question options!');
             return false;
         }
@@ -129,57 +134,67 @@ class qtype_manip extends question_type {
         return true;
     }
 
+    public function get_regex() {
+        return array(
+          'newline' => 'add a new line',
+          'newpage' => 'add a new page',
+        );
+    }
+    
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
+        //debugging('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
         $answers = $questiondata->options->answers;
-        /*
-        // Enlevé - la question n'a pas de "bonne" réponse
-        if ($answers[$questiondata->options->trueanswer]->fraction > 0.99) {
-            $question->rightanswer = true;
-        } else {
-            $question->rightanswer = false;
-        }
-        */
-        $question->goodfeedback =  $answers[$questiondata->options->goodanswer]->feedback;
-        $question->wrongfeedback = $answers[$questiondata->options->wronganswer]->feedback;
-        $question->truefeedbackformat =
-                $answers[$questiondata->options->trueanswer]->feedbackformat;
-        $question->falsefeedbackformat =
-                $answers[$questiondata->options->falseanswer]->feedbackformat;
-        $question->trueanswerid =  $questiondata->options->trueanswer;
-        $question->falseanswerid = $questiondata->options->falseanswer;
+
+        $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
+        $question->feedbackincorrect = $answers[$questiondata->options->incorrect]->feedback;
+        $question->feedbackcorrectformat =
+                $answers[$questiondata->options->correct]->feedbackformat;
+        $question->feedbackincorrectformat =
+                $answers[$questiondata->options->incorrect]->feedbackformat;
+        $question->correctanswerid =  $questiondata->options->correct;
+        $question->incorrectanswerid = $questiondata->options->incorrect;
+    }
+
+    public function response_file_areas() {
+        return array('attachment');
     }
 
     public function delete_question($questionid, $contextid) {
         global $DB;
-        $DB->delete_records('question_manip', array('question' => $questionid));
+        $DB->delete_records('question_manip', array('questionid' => $questionid));
 
         parent::delete_question($questionid, $contextid);
     }
 
     public function move_files($questionid, $oldcontextid, $newcontextid) {
+        //debugging('move_files!');
         parent::move_files($questionid, $oldcontextid, $newcontextid);
-        $this->move_files_in_answers($questionid, $oldcontextid, $newcontextid);
+        $fs = get_file_storage();
+        $fs->move_area_files_to_new_context($oldcontextid, $newcontextid, 'qtype_manip', 'graderinfo', $questionid);
+        //$this->move_files_in_answers($questionid, $oldcontextid, $newcontextid);
     }
 
     protected function delete_files($questionid, $contextid) {
         parent::delete_files($questionid, $contextid);
         $this->delete_files_in_answers($questionid, $contextid);
     }
-
-    public function get_random_guess_score($questiondata) {
-        return 0.5;
+    
+    public function is_usable_by_random() {
+        return false;
     }
-
+    
     public function get_possible_responses($questiondata) {
+        /* TODO: soit utiliser des constantes pour les fractions (1.0 et 0.0),
+         *       soit permettre au prof de spécifier les fractions. */
         return array(
             $questiondata->id => array(
-                0 => new question_possible_response(get_string('false', 'qtype_manip'),
-                        $questiondata->options->answers[
-                        $questiondata->options->falseanswer]->fraction),
-                1 => new question_possible_response(get_string('true', 'qtype_manip'),
-                        $questiondata->options->answers[
-                        $questiondata->options->trueanswer]->fraction),
+                0 => new question_possible_response('correct' /* get_string('correctanswer', 'qtype_manip') */,
+                        1.0 /* $questiondata->options->answers[$questiondata->options->correctanswer]->fraction*/
+                        ),
+                1 => new question_possible_response('incorrect' /* get_string('incorrectanswer', 'qtype_manip') */,
+                        0.0 /* $questiondata->options->answers[$questiondata->options->incorrectanswer]->fraction */
+                        ),
                 null => question_possible_response::no_response()
             )
         );
