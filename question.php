@@ -45,7 +45,6 @@ class qtype_manip_question extends question_graded_automatically {
     public $regex;
     public $attachment;
     public $result;
-    private $qa;
 
     public function get_expected_data() {
         // debugging('get_expected_data');
@@ -58,20 +57,16 @@ class qtype_manip_question extends question_graded_automatically {
     }
     
 
-    // Si on veut forcer le type de question à n'être évalué qu'en defferedfeedback.
+    // Si on veut forcer le type de question à n'être évalué qu'en deferredfeedback.
     /*
     public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
-        return question_engine::make_archetypal_behaviour('fileanalysis', $qa);
+        return question_engine::make_archetypal_behaviour('deferredfeedback', $qa);
     }
     */
     
     public function summarise_response(array $response) {
         //debugging('summarise_response');
-        // TODO: déterminer le comportement voulu...
-        debugging('FFFFFFFFFFFFFFFFF summarise_response ($response)', DEBUG_NORMAL, array());
-        if (!array_key_exists('attachment', $response)) {
-            return null;
-        } else if ($response['attachment']) {
+        if ($this->is_complete_response($response)) {
             return get_string('filesubmitted', 'qtype_manip');
         } else {
             return get_string('filenotsubmitted', 'qtype_manip');
@@ -80,10 +75,11 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function classify_response(array $response) {
         // TODO: déterminer si c'est possible de classer les réponses.
-        debugging('classify_response');
-        if (!array_key_exists('answer', $response)) {
-            return array($this->id => question_classified_response::no_response());
+        // debugging('classify_response');
+        if (!$this->is_complete_response($response)) {
+           return array($this->id => question_classified_response::no_response());
         }
+        
         list($fraction) = $this->grade_response($response);
         if ($this->result) {
             return array($this->id => new question_classified_response(0,
@@ -95,39 +91,43 @@ class qtype_manip_question extends question_graded_automatically {
     }
 
     public function is_complete_response(array $response) {
-        debugging('is_complete_response');
-        debugging('is_complete_response (1) :: '. var_export($response, true));
+        debugging('is_complete_response'. print_r($response, true));
+
+        // TODO: mettre les messages d'erreur dans le fichier de langue
+        if (!array_key_exists('attachment', $response) || !is_object($response['attachment'])) {
+            $this->error = 'noanswer';
+            return false;
+        }
+        $stored_file = $response['attachment']->get_files();
+        if (!$stored_file) {
+            $this->error = 'filenotsubmitted';
+            return false;
+        }
         
-        return $response['attachment'] != null;
-        
-//        if (array_key_exists('attachement', $response) && is_object($response['attachment'])) {
-//            $this->attachment = $response['attachment']->__toString();
-//            return true;
-//        }
-//
-//        return false;
+        debugging('is_complete_response ($stored_file) :: '. print_r($stored_file, true));
+        $file = array_shift($stored_file);
+        debugging('is_complete_response ($file) :: '. print_r($file, true));
+        $content = $file->get_content();
+        if ($content === FALSE) {
+            $this->error = 'filenotreadable';
+            return false;
+        }
+        return true;
     }
     
     public function is_gradable_response(array $response) {
-        debugging('is_gradable_response');
-        // TODO: return false si le fichier est corrompu, illisible, etc.
-        if ($response['attachment'])
-            $this->attachment = $response['attachment'];
-        return true;
+        return $this->is_complete_response($response);
     }
 
     public function get_validation_error(array $response) {
-        // TODO: retourner une string qui explique l'erreur rencontrée par is_gradable_response, s'il y a lieu.
-        debugging('get_validation_error');
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        //TODO: message d'erreur approprié.
-        return get_string('filenotreceived', 'qtype_manip');
+        return get_string($this->error, 'qtype_manip');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        debugging('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));        
+        // debugging('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));        
         // debugging('is_same_response (new->attachement) ::'. var_export($newresponse['attachment']->__toString(), true));        
         
         return array_key_exists('attachment', $prevresponse) && 
@@ -135,85 +135,51 @@ class qtype_manip_question extends question_graded_automatically {
             is_object($prevresponse['attachment']) && is_object($newresponse['attachment']) &&
             ($prevresponse['attachment']->__toString() == $newresponse['attachment']->__toString());
     }
-    /*
-    public function set_qa($qa) {
-        $this->qa = $qa;
-    }
-    */
 
     public function grade_response(array $response) {
-        //global $USER;
-        // UGLY HACK? $attemptobj is defined in /mod/quiz/processattempt.php. 
-        // TODO: make sure it works if used elsewhere and adapt code...
-        //global $attemptobj; 
+        // debugging('grade_response ($response) :: '. print_r($response, true));
+        $stored_file = $response['attachment']->get_files();
+        debugging('grade_response ($stored_files) :: '. print_r($stored_files, true));
+        $file = array_shift($stored_file);
         
-        //echo 'grade_response :: '; print_r($response); echo ' ::';
-        debugging('grade_response ($response) :: '. print_r($response, true));
-        //debugging('grade_response ($this) :: '. print_r($this, true), DEBUG_ALL, array());
-        //debugging('grade_response ($attemptobj) ::'. print_r($attemptobj, true));
-        //$q = $attemptobj->get_quizobj();
-        //debugging('grade_response ($q) ::'. print_r($q, true));
-        //$c = $q->get_context();
-        //debugging('grade_response ($c) ::'. print_r($c, true));
-        //$contextid = $c->id;
-        //debugging('grade_response ($cid) ::'. print_r($contextid, true));
-        
-        //$files = $this->qa->get_last_qt_files('attachment', $contextid);
-        //debugging('files ... '. print_r($files, true));
-                
-        // tel que vu sur http://docs.moodle.org/dev/File_API#Read_file
-        // $fs = get_file_storage();
-        /*
-        $fileinfo = array(
-            'component' => 'question',     // usually = table name
-            'filearea' => 'response_attachment',     // usually = table name
-            'itemid' => $this->id,               // usually = ID of row in table
-            'contextid' => $this->contextid, // ID of context
-            'filepath' => '/',           // any path beginning and ending in /
-            'filename' => 'response.docx' // any filename
-        );
-        
-        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
-                      $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
-         */
-        
-        // TODO: DIMANCHE SOIR : ici! 
-        //$context = context::instance_by_id($this->contextid);
-        //debugging('grade_response (context) :: '. print_r($context, true));
-        
-        //$qa = new question_attempt_step();
-        //$files = $qa->get_qt_files('attachment', $this->contextid);
-        //debugging('grade_response ($files) :: '. print_r($files, true));
-        
-        // todo: get stuff out of $files and into $file ... 
-
-        if ($file) {
-            $contents = $file->get_content();
-            debugging('grade_response :: file read OK');
-            // TODO: copier le fichier ailleurs si c'est nécessaire d'y accéder via le disque.
-            // $file->copy_content_to($pathname);
-            // puis passer ça à la moulinette de la regex choisie (qui est dans $this->regex)
-            // ICI : ça serait sans doute mieux de faire un appel vers une autre fonction pour faire tout ça!
-        } else { 
-            // TODO: donner un message d'erreur 
-            debugging('fichier non lisible');
+        // ZipArchive seem to only be able to open files and stored_file does 
+        // not let us read the file directly - so we have to copy_content_to 
+        // somewhere else.
+        $zipfilename = tempnam(sys_get_temp_dir(), 'm');        
+        if (!$file->copy_content_to($zipfilename)) {
+            debugging('file not readable, copy_content_to failed.');
+            // TODO: Log this error which, really, should not happen.
+            return array(0, question_state::$invalid); // TODO: test this out
         }
-
         
-        $fraction = 1.0;
+        $zip = new ZipArchive;
+        if ($zip->open($zipfilename) === TRUE) {
+            $content =  $zip->getFromName('word/document.xml');
+            $zip->close();
+        } else {
+            debugging('zip file could not be opened');
+            return array(0, question_state::$invalid); // TODO: test this out
+        }
+        
+        $result = preg_match_all($this->regex, $content, $out);
+        debugging('grade_response (result) :: '. $result);
+        
+        if ($result === FALSE) {
+            return array(-1, question_state::$invalid); // TODO: test this out
+        } elseif ($result > 0) {
+            $fraction = 1.0;
+        } else {
+            $fraction = 0.0;
+        }
+        
+        // Delete temporary file
+        unlink($zipfilename);
 
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 
     public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) {
-        //echo 'check_file_access'; print_r($qa); print_r($filearea); print_r($options); 
-        // debugging(var_export($filearea, true) . var_export($options, true));
-        // TODO: traiter le cas de l'attachment fourni en réponse?
-        debugging("checked file access for (c) ::". print_r($component, true) ." (f) :: ". print_r($filearea, true));
-        if ($component == 'question' && $filearea == 'response_attachment') {
-            debugging('response_attachment : '. print_r($options, true) . print_r($args, true));
-            return true;            
-        } elseif ($component == 'question' && $filearea == 'answerfeedback') {
+        if ($component == 'question' && $filearea == 'answerfeedback') {
             $answerid = reset($args); // itemid is answer id.
             $response = $qa->get_last_qt_var('answer', '');
             return $options->feedback && (

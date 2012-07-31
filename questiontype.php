@@ -91,6 +91,8 @@ class qtype_manip extends question_type {
             $DB->delete_records('question_answers', array('id' => $oldanswer->id));
         }
 
+        debugging('QQQQQQQQQQ $question :: '. print_r($question, true));
+        
         // Save question options in question_manip table
         if ($options = $DB->get_record('question_manip', array('questionid' => $question->id))) {
             $options->regex = $question->regex;
