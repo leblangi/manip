@@ -34,11 +34,11 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_manip extends question_type {
-    
+
     public function extra_question_fields() {
         return array('question_manip', 'regex', 'correct', 'incorrect');
     }
-    
+
     public function save_question_options($question) {
         global $DB;
         $result = new stdClass();
@@ -92,7 +92,11 @@ class qtype_manip extends question_type {
         }
 
         debugging('QQQQQQQQQQ $question :: '. print_r($question, true));
-        
+
+        if ($question->regex == 'other') {
+            $question->regex = $question->regexother;
+        }
+
         // Save question options in question_manip table
         if ($options = $DB->get_record('question_manip', array('questionid' => $question->id))) {
             $options->regex = $question->regex;
@@ -138,11 +142,63 @@ class qtype_manip extends question_type {
 
     public function get_regex() {
         return array(
-          'newline' => 'add a new line',
-          'newpage' => 'add a new page',
+            // TODO: set all strings to be translatable?
+            'other' => get_string('otherregex', 'qtype_manip'),
+            '<w:pStyle w:val="En-tte"' => 'En-tête',
+            '<pic:cNvPr id="0" name="nom_image.jpg"/>' => 'Image insérée avec nom du fichier',
+            '<wp:cNvGraphicFramePr>' => 'Images insérées',
+            '<w:spacing w:line="480"' => 'Interligne double',
+            '<w:vAlign w:val="both"' => 'Justification verticale',
+            '<w:lang w:val="en-CA"' => 'Langue canadien anglais',
+            '<w:pStyle w:val="Notedebasdepage"' => 'Notes de bas de page',
+            '<o:OLEObject Type="Link"' => 'Objet Olé lié',
+            'w:orient="landscape"' => 'Orientation paysage',
+            '<w:docPartGallery w:val="Page Numbers (Bottom of Page)"' => 'Pagination dans le pied de page',
+            '<w:jc w:val="center"' => 'Paragraphes centrés horizontalement',
+            '<w:jc w:val="both"' => 'Paragraphes justifiés horizontalement',
+            '<w:numPr>' => 'Puces ou numéro',
+            '<w:br/>' => 'Saut de ligne',
+            '</w:sectPr>' => 'Saut section',
+            '<w:br w:type="page"' => 'Sauts de page',
+            '<w:pStyle w:val="TM1"' => 'Style table des matières niveau 1',
+            '<w:pStyle w:val="TM2"' => 'Style table des matières niveau 2',
+            '<w:pStyle w:val="TM3"' => 'Style table des matières niveau 3',
+            '<w:instrText xml:space="preserve"> TOC \o "1-2"' => 'Table des matères deux premiers niveaux',
+            '<w:instrText xml:space="preserve"> TOC \o "1-3"' => 'Table des matères trois premiers niveaux',
+            '<w:tblGrid>' => 'Tableaux',
+            '<w:tblHeader/>' => 'Tableaux avec ligne en en-tête répétée',
+            '<w:spacing w:line="240" w:lineRule="auto"' => 'Interligne simple',
+            '<w:ind w:left="1134" w:right="1134"' => 'Retrait de 2 cm',
+            '<w:trHeight w:val="567"' => 'Tableau - Hauteur de ligne - 1cm',
+            '<w:trHeight w:val="1134"' => 'Tableau - Hauteur de ligne - 2cm',
+            '<w:jc w:val="center"/>' => 'Nouvelle balise RG',
+            '<w:trHeight w:val="1701"' => 'Tableau - Hauteur de ligne - 3cm',
+            '<w:trHeight w:val="2268"' => 'Tableau - Hauteur de ligne - 4cm',
+            '<w:trHeight w:val="2835"' => 'Tableau - Hauteur de ligne - 5cm',
+            '<w:gridCol w:w="567"' => 'Tableau - Largeur de colonne - 1cm',
+            '<w:gridCol w:w="1134"' => 'Tableau - Largeur de colonne - 2cm',
+            '<w:gridCol w:w="1701"' => 'Tableau - Largeur de colonne - 3cm',
+            '<w:gridCol w:w="2268"' => 'Tableau - Largeur de colonne - 4cm',
+            '<w:gridCol w:w="2835"' => 'Tableau - Largeur de colonne - 5cm',
+            'w:fill=' => 'Tableau - Trame de fond',
+            '<w:spacing w:line="240"' => 'Interligne simple',
+            '<w:r>' => 'Saut de paragraphe',
+            '<w:pgNumType w:fmt="lowerRoman"' => 'Pagination chiffres romains minuscules',
+            '<w:numFmt w:val="decimal"' => 'Pagination chiffres arabes',
+            '<w:start ="1"' => 'Numérotation débutant à 1',
+            '<w:ind w:firstLine="1134"' => 'Retrait première ligne 2 cm',
+            '<w:jc w:val="center"' => 'Texte centré horizontalement',
+            '<w:jc w:val="right"' => 'Texte aligné à droite',
+            '<w:vAlign w:val="center"' => 'Texte centré verticalement',
+            '<w:vAlign w:val="bottom"' => 'Texte aligné au bas',
+            '<w:jc w:val="both"' => 'Paragraphe justifié',
+            '<w:ind w:left="567"' => 'Retrait à gauche 1 cm',
+            '<w:ind w:left="1134"' => 'Retrait à gauche 2 cm',
+            '<w:ind w:right="567"' => 'Retrait à droite 1 cm',
+            '<w:ind w:right="1134"' => 'Retrait à droite 2 cm',
         );
     }
-    
+
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         //debugging('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
@@ -181,11 +237,11 @@ class qtype_manip extends question_type {
         parent::delete_files($questionid, $contextid);
         $this->delete_files_in_answers($questionid, $contextid);
     }
-    
+
     public function is_usable_by_random() {
         return false;
     }
-    
+
     public function get_possible_responses($questiondata) {
         /* TODO: soit utiliser des constantes pour les fractions (1.0 et 0.0),
          *       soit permettre au prof de spécifier les fractions. */
