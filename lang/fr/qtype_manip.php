@@ -44,5 +44,6 @@ $string['regex_help'] = 'TODO: Donner ici de l\'aide pour l\'écriture des expre
 $string['filesubmitted'] = 'Le fichier a été reçu';
 $string['filenotsubmitted'] = 'Aucun fichier n\'a été reçu';
 $string['filenotreceived'] = 'Aucun fichier n\'a été reçu de la part de l\'étudiant';
+$string['admindocxsnippets'] = 'Gestion des motifs de recherche';
 
 // $string[''] = '';
