@@ -42,22 +42,6 @@ class qtype_manip_edit_form extends question_edit_form {
      * @param object $mform the form being built.
      */
     protected function definition_inner($mform) {
-        // TODO: manip : ajouter un sélecteur d'expression régulière pour le choix de la question.
-        /* $mform->addElement('select', 'regexselection',
-           get_string('regexselection', 'qtype_manip'), array(
-           // TODO: manip - attention, c'est la chaîne "valeur" qui est sauvegardée dans la DB
-           0 => get_string('regex_1', 'qtype_manip'),
-           1 => get_string('regex_2', 'qtype_manip')));
-         */
-
-        /*
-        $mform->addElement('text', 'regex', get_string('regex', 'qtype_manip'), array('size' => '75'));
-        $mform->setType('regex', PARAM_RAW);
-        // TODO: donner de l'aide à propos des regex dans l'aide
-        $mform->addHelpButton('regex', 'regex', 'qtype_manip');
-        */
-
-        // TODO: finir la connexion avec le menu déroulant (À TESTER!)
         $qtype = question_bank::get_qtype('manip');
         $mform->addElement('select', 'regex',
                 get_string('regex', 'qtype_manip'), $qtype->get_regex());

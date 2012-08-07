@@ -33,9 +33,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_manip_question extends question_graded_automatically {
-    // TODO: manip
-    //  * true/false -> good/wrong
-    //  * conserver la regex..
     public $correctanswerid;
     public $incorrectanswerid;
     public $feedbackcorrect;
@@ -48,12 +45,12 @@ class qtype_manip_question extends question_graded_automatically {
     private $error;
 
     public function get_expected_data() {
-        // debugging('get_expected_data');
+        // error_log('get_expected_data');
         return array('attachment' => question_attempt::PARAM_FILES);
     }
 
     public function get_correct_response() {
-        // debugging('get_correct_response');
+        // error_log('get_correct_response');
         return null;
     }
     
@@ -66,7 +63,7 @@ class qtype_manip_question extends question_graded_automatically {
     */
     
     public function summarise_response(array $response) {
-        //debugging('summarise_response');
+        //error_log('summarise_response');
         if ($this->is_complete_response($response)) {
             return get_string('filesubmitted', 'qtype_manip');
         } else {
@@ -75,8 +72,7 @@ class qtype_manip_question extends question_graded_automatically {
     }
 
     public function classify_response(array $response) {
-        // TODO: déterminer si c'est possible de classer les réponses.
-        // debugging('classify_response');
+        // error_log('classify_response');
         if (!$this->is_complete_response($response)) {
            return array($this->id => question_classified_response::no_response());
         }
@@ -93,7 +89,7 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function is_complete_response(array $response) {
         error_log('is_complete_response');
-        //debugging('is_complete_response'. print_r($response, true));
+        // error_log ('is_complete_response'. print_r($response, true));
 
         // TODO: mettre les messages d'erreur dans le fichier de langue
         if (!array_key_exists('attachment', $response) || !is_object($response['attachment'])) {
@@ -106,9 +102,9 @@ class qtype_manip_question extends question_graded_automatically {
             return false;
         }
         
-        //debugging('is_complete_response ($stored_file) :: '. print_r($stored_file, true));
+        // error_log ('is_complete_response ($stored_file) :: '. print_r($stored_file, true));
         $file = array_shift($stored_file);
-        //debugging('is_complete_response ($file) :: '. print_r($file, true));
+        // error_log ('is_complete_response ($file) :: '. print_r($file, true));
         $content = $file->get_content();
         if ($content === FALSE) {
             $this->error = 'filenotreadable';
@@ -130,8 +126,8 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function is_same_response(array $prevresponse, array $newresponse) {
         error_log('is_same_response');
-        // debugging('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));        
-        // debugging('is_same_response (new->attachement) ::'. var_export($newresponse['attachment']->__toString(), true));        
+        // error_log('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));        
+        // error_log('is_same_response (new->attachement) ::'. var_export($newresponse['attachment']->__toString(), true));        
         
         return array_key_exists('attachment', $prevresponse) && 
             array_key_exists('attachment', $newresponse) && 
@@ -141,9 +137,9 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function grade_response(array $response) {
         error_log('grade_response');
-        // debugging('grade_response ($response) :: '. print_r($response, true));
+        // error_log('grade_response ($response) :: '. print_r($response, true));
         $stored_file = $response['attachment']->get_files();
-        //debugging('grade_response ($stored_files) :: '. print_r($stored_file, true));
+        // error_log('grade_response ($stored_files) :: '. print_r($stored_file, true));
         $file = array_shift($stored_file);
         
         // ZipArchive seem to only be able to open files and stored_file does 
@@ -151,7 +147,6 @@ class qtype_manip_question extends question_graded_automatically {
         // somewhere else.
         $zipfilename = tempnam(sys_get_temp_dir(), 'm');        
         if (!$file->copy_content_to($zipfilename)) {
-            //debugging('file not readable, copy_content_to failed.');
             // TODO: Log this error which, really, should not happen.
             return array(0, question_state::$invalid); // TODO: test this out
         }
@@ -182,24 +177,24 @@ class qtype_manip_question extends question_graded_automatically {
         //// GRADING WITH PREG_MATCH_ALL
         // Unless the patterns are real regex, strpos is faster and simpler.
         $result = preg_match_all($this->regex, $content, $out);
-        debugging('grade_response (result) :: '. $result);
+        error_log('grade_response (result) :: '. $result);
         
         if (($result === FALSE) && (preg_last_error() != PREG_NO_ERROR)) {
             if (preg_last_error() == PREG_INTERNAL_ERROR) {
-                debugging('There is an internal error!');
+                error_log('There is an internal error!');
             }
             else if (preg_last_error() == PREG_BACKTRACK_LIMIT_ERROR) {
-                debugging('Backtrack limit was exhausted!');
+                error_log('Backtrack limit was exhausted!');
             }
             else if (preg_last_error() == PREG_RECURSION_LIMIT_ERROR) {
-                debugging('Recursion limit was exhausted!');
+                error_log('Recursion limit was exhausted!');
             }
             else if (preg_last_error() == PREG_BAD_UTF8_ERROR) {
-                debugging('Bad UTF8 error!');
+                error_log('Bad UTF8 error!');
             }
             else if (preg_last_error() == PREG_BAD_UTF8_ERROR) {
-                debugging('Bad UTF8 offset error!');
-            } 
+                error_log('Bad UTF8 offset error!');
+            }
             // TODO: trouver comment retourner une question clairement invalide,
             // pour éviter que le résultat ne compte (et permettre à l'étudiant 
             // d'envoyer un autre fichier?)

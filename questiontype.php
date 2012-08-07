@@ -43,6 +43,8 @@ class qtype_manip extends question_type {
         global $DB;
         $result = new stdClass();
         $context = $question->context;
+        
+        //error_log(print_r($question, true));
 
         // Fetch old answer ids so that we can reuse them
         $oldanswers = $DB->get_records('question_answers',
@@ -201,7 +203,7 @@ class qtype_manip extends question_type {
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
-        //debugging('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
+        debugging('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
         $answers = $questiondata->options->answers;
 
         $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
@@ -226,9 +228,10 @@ class qtype_manip extends question_type {
     }
 
     public function move_files($questionid, $oldcontextid, $newcontextid) {
-        //debugging('move_files!');
+        // error_log('move_files!');
         parent::move_files($questionid, $oldcontextid, $newcontextid);
         $fs = get_file_storage();
+        // TODO: confirmer "graderinfo"
         $fs->move_area_files_to_new_context($oldcontextid, $newcontextid, 'qtype_manip', 'graderinfo', $questionid);
         //$this->move_files_in_answers($questionid, $oldcontextid, $newcontextid);
     }

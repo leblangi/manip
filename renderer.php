@@ -38,29 +38,11 @@ class qtype_manip_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
-        // debugging('formulation_and_controls :: '. var_export($options, true));
-        //$answer = parent::formulation_and_controls($qa, $options);
+        // error_log('formulation_and_controls ($options) :: '. print_r($options, true));
 
         $question = $qa->get_question();
-        //echo 'formulation_and_controls (question) :: '; print_r($question); echo ' ::';
+        // error_log('                         ($question):: '. print_r($question, true));
         
-        //$response = $qa->get_last_qt_var('answer', '');
-        //echo 'formulation_and_controls  (response) :: '; print_r($response); echo ' ::';
-        // $responseoutput = $question->get_format_renderer($this->page);
-
-        // Answer field.
-        /*
-        $step = $qa->get_last_step_with_qt_var('answer');
-        if (empty($options->readonly)) {
-            $answer = $responseoutput->response_area_input('answer', $qa,
-                    $step, $question->responsefieldlines, $options->context);
-
-        } else {
-            $answer = $responseoutput->response_area_read_only('answer', $qa,
-                    $step, $question->responsefieldlines, $options->context);
-        }
-        */
-
         $files = '';
         if (empty($options->readonly)) {
             // TODO: empêcher la modification du fichier lors d'une relecture (à vérifier)
@@ -89,10 +71,7 @@ class qtype_manip_renderer extends qtype_renderer {
      */
     public function files_read_only(question_attempt $qa, question_display_options $options) {
         $files = $qa->get_last_qt_files('attachment', $options->context->id);
-        // debugging('files_read_only (renderer.php:91) ($options) :: '. print_r($options, true) ." (cid) :: ". print_r($options->context->id, true));
         $output = array();
-
-        // debugging('files_read_only :: '. var_export($files, true));
         
         foreach ($files as $file) {
             $mimetype = $file->get_mimetype();
