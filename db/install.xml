@@ -3,15 +3,15 @@
   <TABLES>
     <TABLE NAME="question_manip" COMMENT="Options for docx manipulation questions">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="questionid"/>
-        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="regex"/>
-        <FIELD NAME="regex" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="//" SEQUENCE="false" PREVIOUS="questionid" NEXT="correct" COMMENT="Expression régulière servant à évaluer si l'opération a été accomplie telle que demandé."/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="question"/>
+        <FIELD NAME="question" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="regex"/>
+        <FIELD NAME="regex" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="//" SEQUENCE="false" PREVIOUS="question" NEXT="correct" COMMENT="Expression régulière servant à évaluer si l'opération a été accomplie telle que demandé."/>
         <FIELD NAME="correct" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="regex" NEXT="incorrect"/>
         <FIELD NAME="incorrect" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="correct"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="questionid"/>
-        <KEY NAME="questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="question"/>
+        <KEY NAME="question" TYPE="foreign" FIELDS="question" REFTABLE="question" REFFIELDS="id" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
   </TABLES>
