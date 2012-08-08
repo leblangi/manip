@@ -80,7 +80,7 @@ class qtype_manip_edit_form extends question_edit_form {
 
         if (!empty($question->options->correct)) {
             $correctanswer = $question->options->answers[$question->options->correct];
-            $question->correctanswer = ($correctanswer->fraction != 0);
+            $question->correctanswerid = $question->options->correct;
 
             $draftid = file_get_submitted_draft_itemid('correctanswer');
             $answerid = $question->options->correct;
@@ -101,6 +101,7 @@ class qtype_manip_edit_form extends question_edit_form {
 
         if (!empty($question->options->incorrect)) {
             $incorrectanswer = $question->options->answers[$question->options->incorrect];
+            $question->incorrectanswerid = $question->options->incorrect;
 
             $draftid = file_get_submitted_draft_itemid('incorrectanswer');
             $answerid = $question->options->incorrect;
