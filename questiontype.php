@@ -45,7 +45,7 @@ class qtype_manip extends question_type {
         $context = $question->context;
         
         //error_log(print_r($question, true));
-        file_put_contents('/tmp/form.txt', print_r($question, true));
+        //file_put_contents('/tmp/form.txt', print_r($question, true));
 
         // Fetch old answer ids so that we can reuse them
         $oldanswers = $DB->get_records('question_answers',
