@@ -38,13 +38,14 @@ class qtype_manip extends question_type {
     public function extra_question_fields() {
         return array('question_manip', 'regex', 'correct', 'incorrect');
     }
-
+    
     public function save_question_options($question) {
         global $DB;
         $result = new stdClass();
         $context = $question->context;
         
         //error_log(print_r($question, true));
+        file_put_contents('/tmp/form.txt', print_r($question, true));
 
         // Fetch old answer ids so that we can reuse them
         $oldanswers = $DB->get_records('question_answers',
@@ -59,6 +60,10 @@ class qtype_manip extends question_type {
             $answer->feedback = '';
             $answer->id = $DB->insert_record('question_answers', $answer);
         }
+        
+        //debugging('ICI.1 :: ($question) :: '. print_r($question, true));
+        //debugging('ICI.2 :: ($question) :: '. var_export(get_object_vars($question), true));
+        //error_log('ICI.3 :: ($question) :: '. var_export(get_object_vars($question), true));
 
         $answer->answer   = 'correct'; //get_string('true', 'qtype_manip');
         $answer->fraction = 1.0; // $question->correctanswer;
@@ -93,21 +98,21 @@ class qtype_manip extends question_type {
             $DB->delete_records('question_answers', array('id' => $oldanswer->id));
         }
 
-        debugging('QQQQQQQQQQ $question :: '. print_r($question, true));
+        //debugging('$question :: '. print_r($question, true));
 
         if ($question->regex == 'other') {
             $question->regex = $question->regexother;
         }
 
         // Save question options in question_manip table
-        if ($options = $DB->get_record('question_manip', array('questionid' => $question->id))) {
+        if ($options = $DB->get_record('question_manip', array('question' => $question->id))) {
             $options->regex = $question->regex;
             $options->correct = $correctid;
             $options->incorrect = $incorrectid;
             $DB->update_record('question_manip', $options);
         } else {
             $options = new stdClass();
-            $options->questionid    = $question->id;
+            $options->question    = $question->id;
             $options->regex = $question->regex;
             $options->correct = $correctid;
             $options->incorrect = $incorrectid;
@@ -127,7 +132,7 @@ class qtype_manip extends question_type {
         // Get additional information from database
         // and attach it to the question object
         if (!$question->options = $DB->get_record('question_manip',
-                array('questionid' => $question->id))) {
+                array('question' => $question->id))) {
             echo $OUTPUT->notification('Error: Missing question options!');
             return false;
         }
@@ -203,7 +208,7 @@ class qtype_manip extends question_type {
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
-        debugging('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
+        error_log('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
         $answers = $questiondata->options->answers;
 
         $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
@@ -222,7 +227,7 @@ class qtype_manip extends question_type {
 
     public function delete_question($questionid, $contextid) {
         global $DB;
-        $DB->delete_records('question_manip', array('questionid' => $questionid));
+        $DB->delete_records('question_manip', array('question' => $questionid));
 
         parent::delete_question($questionid, $contextid);
     }
@@ -260,4 +265,9 @@ class qtype_manip extends question_type {
             )
         );
     }
+    
+//    public function import_from_xml($data, $question, $format, $extra = null) {
+//        parent::import_from_xml($data, $question, $format, $extra);
+//        debugging(print_r($data, true));
+//    }
 }

@@ -35,12 +35,15 @@ defined('MOODLE_INTERNAL') || die();
 class qtype_manip_question extends question_graded_automatically {
     public $correctanswerid;
     public $incorrectanswerid;
+    
     public $feedbackcorrect;
     public $feedbackcorrectformat;
+    
     public $feedbackincorrect;
     public $feedbackincorrectformat;
+    
     public $regex;
-    public $attachment;
+    
     public $result;
     private $error;
 
