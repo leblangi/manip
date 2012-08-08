@@ -33,14 +33,11 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_manip_question extends question_graded_automatically {
-    public $correctanswerid;
-    public $incorrectanswerid;
-    
+    public $correctanswerid;    
     public $feedbackcorrect;
-    public $feedbackcorrectformat;
     
+    public $incorrectanswerid;
     public $feedbackincorrect;
-    public $feedbackincorrectformat;
     
     public $regex;
     
@@ -219,10 +216,10 @@ class qtype_manip_question extends question_graded_automatically {
         if ($component == 'question' && $filearea == 'answerfeedback') {
             $answerid = reset($args); // itemid is answer id.
             $response = $qa->get_last_qt_var('answer', '');
-            return $options->feedback && (
-                    // TODO: vérifier les conditions ici... 
-                    ($answerid == $this->correctanswerid && $response) ||
-                    ($answerid == $this->incorrectanswerid && $response !== ''));
+            
+            return $options->feedback &&
+                    // TODO: test this condition...
+                    ($answerid == $this->correctanswerid && $response);
 
         } elseif ($component == 'question' && $filearea == 'response_attachment') {
             $answerid = reset($args); // itemid is answer id and should match attemptstepid

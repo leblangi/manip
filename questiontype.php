@@ -124,6 +124,19 @@ class qtype_manip extends question_type {
         return true;
     }
 
+    protected function initialise_question_instance(question_definition $question, $questiondata) {
+        parent::initialise_question_instance($question, $questiondata);
+        $answers = $questiondata->options->answers;
+        $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
+        $question->feedbackincorrect = $answers[$questiondata->options->incorrect]->feedback;
+        $question->feedbackcorrectformat =
+                $answers[$questiondata->options->correct]->feedbackformat;
+        $question->feedbackincorrectformat =
+                $answers[$questiondata->options->incorrect]->feedbackformat;
+        $question->correctanswerid =  $questiondata->options->correct;
+        $question->incorrectanswerid = $questiondata->options->incorrect;
+    }
+
     /**
      * Loads the question type specific options for the question.
      */
@@ -145,6 +158,51 @@ class qtype_manip extends question_type {
         }
 
         return true;
+    }
+
+    public function response_file_areas() {
+        return array('attachment');
+    }
+
+    public function delete_question($questionid, $contextid) {
+        global $DB;
+        $DB->delete_records('question_manip', array('question' => $questionid));
+
+        parent::delete_question($questionid, $contextid);
+    }
+
+    public function move_files($questionid, $oldcontextid, $newcontextid) {
+        // error_log('move_files!');
+        parent::move_files($questionid, $oldcontextid, $newcontextid);
+        $fs = get_file_storage();
+        // TODO: confirmer "graderinfo"
+        $fs->move_area_files_to_new_context($oldcontextid, $newcontextid, 'qtype_manip', 'graderinfo', $questionid);
+        //$this->move_files_in_answers($questionid, $oldcontextid, $newcontextid);
+    }
+
+    protected function delete_files($questionid, $contextid) {
+        parent::delete_files($questionid, $contextid);
+        $this->delete_files_in_answers($questionid, $contextid);
+    }
+
+    public function is_usable_by_random() {
+        return false;
+    }
+
+    public function get_possible_responses($questiondata) {
+        /* TODO: soit utiliser des constantes pour les fractions (1.0 et 0.0),
+         *       soit permettre au prof de spécifier les fractions. */
+        return array(
+            $questiondata->id => array(
+                0 => new question_possible_response('Correct' /* get_string('correctanswer', 'qtype_manip') */,
+                        1.0 /* $questiondata->options->answers[$questiondata->options->correctanswer]->fraction*/
+                        ),
+                1 => new question_possible_response('Incorrect' /* get_string('incorrectanswer', 'qtype_manip') */,
+                        0.0 /* $questiondata->options->answers[$questiondata->options->incorrectanswer]->fraction */
+                        ),
+                null => question_possible_response::no_response()
+            )
+        );
     }
 
     public function get_regex() {
@@ -205,67 +263,65 @@ class qtype_manip extends question_type {
             '<w:ind w:right="1134"' => 'Retrait à droite 2 cm',
         );
     }
+        
+    // Override question_type::import_from_xml, but keep code as similar as possible.
+    public function import_from_xml($data, $question, $format, $extra=null) {        
+        $question_type = $data['@']['type'];
+        if ($question_type != $this->name()) {
+            return false;
+        }
 
-    protected function initialise_question_instance(question_definition $question, $questiondata) {
-        parent::initialise_question_instance($question, $questiondata);
-        $answers = $questiondata->options->answers;
-        $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
-        $question->feedbackincorrect = $answers[$questiondata->options->incorrect]->feedback;
-        $question->feedbackcorrectformat =
-                $answers[$questiondata->options->correct]->feedbackformat;
-        $question->feedbackincorrectformat =
-                $answers[$questiondata->options->incorrect]->feedbackformat;
-        $question->correctanswerid =  $questiondata->options->correct;
-        $question->incorrectanswerid = $questiondata->options->incorrect;
+        $extraquestionfields = $this->extra_question_fields();
+        if (!is_array($extraquestionfields)) {
+            return false;
+        }
+
+        //omit table name
+        array_shift($extraquestionfields);
+        $qo = $format->import_headers($data);
+        $qo->qtype = $question_type;
+
+        foreach ($extraquestionfields as $field) {
+            $qo->$field = $format->getpath($data, array('#', $field, 0, '#'), '');
+        }
+
+        // run through the answers
+        $answers = $data['#']['answer'];
+        $a_count = 0;
+        $extraanswersfields = $this->extra_answer_fields();
+        if (is_array($extraanswersfields)) {
+            array_shift($extraanswersfields);
+        }
+        foreach ($answers as $aid => $answer) {
+            $ans = $format->import_answer($answer);
+            if (!$this->has_html_answers()) {
+                $qo->answer[$a_count] = $ans->answer['text'];
+            } else {
+                $qo->answer[$a_count] = $ans->answer;
+            }
+            $qo->fraction[$a_count] = $ans->fraction;
+
+            /// ****** BEGIN 'manip'-specific code
+            if ($ans->answer['text'] == 'Correct')
+                $varname = 'feedbackcorrect';
+            elseif ($ans->answer['text'] == 'Incorrect')
+                $varname = 'feedbackincorrect';
+            else
+                return false('Unknown answer value while importing manip question : '. $ans->answer['text']);
+
+            $qo->$varname = $ans->feedback;
+            /// ****** END 'manip'-specific code
+            
+            if (is_array($extraanswersfields)) {
+                foreach ($extraanswersfields as $field) {
+                    $qo->{$field}[$a_count] =
+                        $format->getpath($answer, array('#', $field, 0, '#'), '');
+                }
+            }
+            
+            ++$a_count;
+        }
+        
+        return $qo;
     }
-
-    public function response_file_areas() {
-        return array('attachment');
-    }
-
-    public function delete_question($questionid, $contextid) {
-        global $DB;
-        $DB->delete_records('question_manip', array('question' => $questionid));
-
-        parent::delete_question($questionid, $contextid);
-    }
-
-    public function move_files($questionid, $oldcontextid, $newcontextid) {
-        // error_log('move_files!');
-        parent::move_files($questionid, $oldcontextid, $newcontextid);
-        $fs = get_file_storage();
-        // TODO: confirmer "graderinfo"
-        $fs->move_area_files_to_new_context($oldcontextid, $newcontextid, 'qtype_manip', 'graderinfo', $questionid);
-        //$this->move_files_in_answers($questionid, $oldcontextid, $newcontextid);
-    }
-
-    protected function delete_files($questionid, $contextid) {
-        parent::delete_files($questionid, $contextid);
-        $this->delete_files_in_answers($questionid, $contextid);
-    }
-
-    public function is_usable_by_random() {
-        return false;
-    }
-
-    public function get_possible_responses($questiondata) {
-        /* TODO: soit utiliser des constantes pour les fractions (1.0 et 0.0),
-         *       soit permettre au prof de spécifier les fractions. */
-        return array(
-            $questiondata->id => array(
-                0 => new question_possible_response('Correct' /* get_string('correctanswer', 'qtype_manip') */,
-                        1.0 /* $questiondata->options->answers[$questiondata->options->correctanswer]->fraction*/
-                        ),
-                1 => new question_possible_response('Incorrect' /* get_string('incorrectanswer', 'qtype_manip') */,
-                        0.0 /* $questiondata->options->answers[$questiondata->options->incorrectanswer]->fraction */
-                        ),
-                null => question_possible_response::no_response()
-            )
-        );
-    }
-    
-//    public function import_from_xml($data, $question, $format, $extra = null) {
-//        parent::import_from_xml($data, $question, $format, $extra);
-//        debugging(print_r($data, true));
-//    }
 }
