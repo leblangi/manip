@@ -65,7 +65,7 @@ class qtype_manip extends question_type {
         //debugging('ICI.2 :: ($question) :: '. var_export(get_object_vars($question), true));
         //error_log('ICI.3 :: ($question) :: '. var_export(get_object_vars($question), true));
 
-        $answer->answer   = 'correct'; //get_string('true', 'qtype_manip');
+        $answer->answer   = 'Correct'; //get_string('true', 'qtype_manip');
         $answer->fraction = 1.0; // $question->correctanswer;
         $answer->feedback = $this->import_or_save_files($question->feedbackcorrect,
                 $context, 'question', 'answerfeedback', $answer->id);
@@ -83,7 +83,7 @@ class qtype_manip extends question_type {
             $answer->id = $DB->insert_record('question_answers', $answer);
         }
 
-        $answer->answer   = 'incorrect'; //get_string('false', 'qtype_manip');
+        $answer->answer   = 'Incorrect'; //get_string('false', 'qtype_manip');
         $answer->fraction = 0.0; // 1 - (int)$question->correctanswer;
         $answer->feedback = $this->import_or_save_files($question->feedbackincorrect,
                 $context, 'question', 'answerfeedback', $answer->id);
@@ -208,9 +208,7 @@ class qtype_manip extends question_type {
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
-        error_log('initialise_question_instance ($question, $questiondata) :: '. print_r($question, true) .' :: '. print_r($questiondata, true));
         $answers = $questiondata->options->answers;
-
         $question->feedbackcorrect = $answers[$questiondata->options->correct]->feedback;
         $question->feedbackincorrect = $answers[$questiondata->options->incorrect]->feedback;
         $question->feedbackcorrectformat =
@@ -255,10 +253,10 @@ class qtype_manip extends question_type {
          *       soit permettre au prof de spécifier les fractions. */
         return array(
             $questiondata->id => array(
-                0 => new question_possible_response('correct' /* get_string('correctanswer', 'qtype_manip') */,
+                0 => new question_possible_response('Correct' /* get_string('correctanswer', 'qtype_manip') */,
                         1.0 /* $questiondata->options->answers[$questiondata->options->correctanswer]->fraction*/
                         ),
-                1 => new question_possible_response('incorrect' /* get_string('incorrectanswer', 'qtype_manip') */,
+                1 => new question_possible_response('Incorrect' /* get_string('incorrectanswer', 'qtype_manip') */,
                         0.0 /* $questiondata->options->answers[$questiondata->options->incorrectanswer]->fraction */
                         ),
                 null => question_possible_response::no_response()
