@@ -38,10 +38,7 @@ class qtype_manip_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
-        // error_log('formulation_and_controls ($options) :: '. print_r($options, true));
-
         $question = $qa->get_question();
-        // error_log('                         ($question):: '. print_r($question, true));
         
         $files = '';
         if (empty($options->readonly)) {
@@ -56,7 +53,6 @@ class qtype_manip_renderer extends qtype_renderer {
                 array('class' => 'qtext'));
 
         $result .= html_writer::start_tag('div', array('class' => 'ablock'));
-        //$result .= html_writer::tag('div', $answer, array('class' => 'answer'));
         $result .= html_writer::tag('div', $files, array('class' => 'attachment'));
         $result .= html_writer::end_tag('div');
 
