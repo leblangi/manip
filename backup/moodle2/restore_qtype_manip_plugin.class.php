@@ -57,8 +57,6 @@ class restore_qtype_manip_plugin extends restore_qtype_plugin {
     public function process_manip($data) {
         global $DB;
         
-        //error_log('$data :: '. print_r($data, true));
-
         $data = (object)$data;
         $oldid = $data->id;
 
@@ -66,16 +64,14 @@ class restore_qtype_manip_plugin extends restore_qtype_plugin {
         $oldquestionid   = $this->get_old_parentid('question');
         $newquestionid   = $this->get_new_parentid('question');
         $questioncreated = $this->get_mappingid('question_created', $oldquestionid) ? true : false;
-        
+                
         // If the question has been created by restore, we need to create its question_manip too
         if ($questioncreated) {
             // Adjust some columns
             $data->question = $newquestionid;
-            //error_log('           ($data) :: '. print_r($data, true));
-            //syslog(LOG_ERR, '           ($data) :: '. print_r($data, true));
-            $data->regex = $this->get_mappingid('question_answer', $data->regex);
-            $data->feedbackcorrect = $this->get_mappingid('question_answer', $data->correct);
-            $data->feedbackincorrect = $this->get_mappingid('question_answer', $data->incorrect);
+            $data->regex = $data->regex;
+            $data->correct = $this->get_mappingid('question_answer', $data->correct);
+            $data->incorrect = $this->get_mappingid('question_answer', $data->incorrect);
             // Insert record
             $newitemid = $DB->insert_record('question_manip', $data);
             // Create mapping
