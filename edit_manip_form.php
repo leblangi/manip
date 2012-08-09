@@ -42,6 +42,14 @@ class qtype_manip_edit_form extends question_edit_form {
      * @param object $mform the form being built.
      */
     protected function definition_inner($mform) {
+        global $PAGE;
+        
+        $PAGE->requires->js_init_call('M.qtype_manip.initQuestionForm', null, true, array(
+            'name'     => 'qtype_manip',
+            'fullpath' => '/question/type/manip/module.js',
+            'requires' => array('base', 'dom', 'node', 'event', 'widget-base'),
+        ));
+        
         $qtype = question_bank::get_qtype('manip');
         $mform->addElement('select', 'regex',
                 get_string('regex', 'qtype_manip'), $qtype->get_regex());
@@ -54,7 +62,6 @@ class qtype_manip_edit_form extends question_edit_form {
         $mform->addElement('editor', 'feedbackcorrect', get_string('feedbackcorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
         $mform->setType('feedbackcorrect', PARAM_RAW);
         $mform->addHelpButton('feedbackcorrect', 'feedbackcorrect', 'qtype_manip');
-
 
         $mform->addElement('editor', 'feedbackincorrect', get_string('feedbackincorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
         $mform->setType('feedbackincorrect', PARAM_RAW);

@@ -39,7 +39,7 @@ $string['pluginnamesummary'] = 'Évaluation automatique d\'opérations effectué
 $string['regexselect'] = 'Opération à évaluer'; // pour le cas où c'est un drop-down qui sert à choisir la regex
 $string['otherregex'] = 'Spécifier manuellement l\'expression à rechercher';
 $string['regexother'] = 'Expression à chercher dans le fichier';
-$string['regexother_help'] = 'Veuillez fournir ici l\'expression à rechercher, si celle-ci n\'a pas été sélectionné dans la liste.';
+$string['regexother_help'] = 'Veuillez fournir ici l\'expression à rechercher, si celle-ci n\'a pas été sélectionné dans la liste. Vous devez sélectionner "spécifier manuelle ment l\'espression à rechercher" pour que ce champs soit disponible';
 $string['regex'] = 'Expression régulière servant à faire l\'évaluation';
 $string['answerno'] = 'Answer {$a}';
 // TODO: liste des regex.
