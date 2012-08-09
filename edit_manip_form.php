@@ -123,8 +123,8 @@ class qtype_manip_edit_form extends question_edit_form {
         if (!empty($question->options->regex)) {
             $qtype = question_bank::get_qtype('manip');
             if (!array_key_exists($question->options->regex, $qtype->get_regex())) {
-                $question->options->regexother = $question->options->regex;
-                $question->options->regex = 'other';
+                $question->regexother = $question->options->regex;
+                $question->regex = 'other';
             }
         }
 

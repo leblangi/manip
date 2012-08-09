@@ -40,6 +40,7 @@ class qtype_manip_question extends question_graded_automatically {
     public $feedbackincorrect;
     
     public $regex;
+    public $regexother;
     
     public $result;
     private $error;
