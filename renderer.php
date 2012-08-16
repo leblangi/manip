@@ -42,7 +42,6 @@ class qtype_manip_renderer extends qtype_renderer {
         
         $files = '';
         if (empty($options->readonly)) {
-            // TODO: empêcher la modification du fichier lors d'une relecture (à vérifier)
             $files = $this->files_input($qa, $question->attachment, $options);
         } else {
             $files = $this->files_read_only($qa, $options);
@@ -87,7 +86,7 @@ class qtype_manip_renderer extends qtype_renderer {
      */
     public function files_input(question_attempt $qa, $numallowed,
             question_display_options $options) {
-        global $CFG;
+        global $CFG, $PAGE;
         require_once($CFG->dirroot . '/lib/form/filemanager.php');
 
         // TODO: voir si on peut limiter la taille limite du fichier.
@@ -101,6 +100,12 @@ class qtype_manip_renderer extends qtype_renderer {
         // TODO: même ligne que deux lignes plus haut, mais c'est comme ça dans "essay". Pourquoi???
         //$pickeroptions->itemid = $qa->prepare_response_files_draft_itemid('attachment', $options->context->id);
 
+        $PAGE->requires->js_init_call('M.qtype_manip.initUpload', array($qa->get_usage_id(), $qa->get_slot()), true, array(
+            'name'     => 'qtype_manip',
+            'fullpath' => '/question/type/manip/module.js',
+            'requires' => array('base', 'dom', 'node', 'node-base', 'event', 'widget-base', 'selector-css3', 'event-valuechange'),
+        ));
+        
         return form_filemanager_render($pickeroptions) . html_writer::empty_tag(
                 'input', array('type' => 'hidden', 'name' => $qa->get_qt_field_name('attachment'),
                 'value' => $pickeroptions->itemid));
