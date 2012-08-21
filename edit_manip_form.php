@@ -68,19 +68,20 @@ class qtype_manip_edit_form extends question_edit_form {
         $mform->addHelpButton('feedbackincorrect', 'feedbackincorrect', 'qtype_manip');
     }
 
-    // TODO: modifier le code ici pour que les choix de "réponse" soient "correct/incorrect".. ou autre.
-    // ...Si on veut permettre d'avoir des fractions spécifiques.
-//    protected function get_per_answer_fields($mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
-//        $repeated = array();
-//        $repeated[] = $mform->createElement('header', 'answerhdr', $label);
-//        $repeated[] = $mform->createElement('text', 'answer', get_string('answer', 'question'), array('size' => 80));
-//        $repeated[] = $mform->createElement('select', 'fraction', get_string('grade'), $gradeoptions);
-//        $repeated[] = $mform->createElement('editor', 'feedback', get_string('feedback', 'question'), array('rows' => 5), $this->editoroptions);
-//        $repeatedoptions['answer']['type'] = PARAM_RAW;
-//        $repeatedoptions['fraction']['default'] = 0;
-//        $answersoption = 'answers';
-//        return $repeated;
-//    }
+    // If more granular fractions are desired, this would be the place to start adding such a feature.
+    /*
+    protected function get_per_answer_fields($mform, $label, $gradeoptions, &$repeatedoptions, &$answersoption) {
+        $repeated = array();
+        $repeated[] = $mform->createElement('header', 'answerhdr', $label);
+        $repeated[] = $mform->createElement('text', 'answer', get_string('answer', 'question'), array('size' => 80));
+        $repeated[] = $mform->createElement('select', 'fraction', get_string('grade'), $gradeoptions);
+        $repeated[] = $mform->createElement('editor', 'feedback', get_string('feedback', 'question'), array('rows' => 5), $this->editoroptions);
+        $repeatedoptions['answer']['type'] = PARAM_RAW;
+        $repeatedoptions['fraction']['default'] = 0;
+        $answersoption = 'answers';
+        return $repeated;
+    }
+    */
 
     public function data_preprocessing($question) {
         $question = parent::data_preprocessing($question);

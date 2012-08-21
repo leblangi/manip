@@ -90,8 +90,6 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function is_complete_response(array $response) {
         error_log('is_complete_response');
-        // error_log ('is_complete_response'. print_r($response, true));
-
         // TODO: mettre les messages d'erreur dans le fichier de langue
         if (!array_key_exists('attachment', $response) || !is_object($response['attachment'])) {
             $this->error = 'noanswer';
@@ -102,7 +100,7 @@ class qtype_manip_question extends question_graded_automatically {
             $this->error = 'filenotsubmitted';
             return false;
         }
-        
+
         // error_log ('is_complete_response ($stored_file) :: '. print_r($stored_file, true));
         $file = array_shift($stored_file);
         // error_log ('is_complete_response ($file) :: '. print_r($file, true));
@@ -113,7 +111,7 @@ class qtype_manip_question extends question_graded_automatically {
         }
         return true;
     }
-    
+
     public function is_gradable_response(array $response) {
         return $this->is_complete_response($response);
     }
@@ -127,11 +125,11 @@ class qtype_manip_question extends question_graded_automatically {
 
     public function is_same_response(array $prevresponse, array $newresponse) {
         error_log('is_same_response');
-        // error_log('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));        
-        // error_log('is_same_response (new->attachement) ::'. var_export($newresponse['attachment']->__toString(), true));        
-        
-        return array_key_exists('attachment', $prevresponse) && 
-            array_key_exists('attachment', $newresponse) && 
+        // error_log('is_same_response (prev) :: '. var_export($prevresponse, true) .' (new) ::'. var_export($newresponse, true));
+        // error_log('is_same_response (new->attachement) ::'. var_export($newresponse['attachment']->__toString(), true));
+
+        return array_key_exists('attachment', $prevresponse) &&
+            array_key_exists('attachment', $newresponse) &&
             is_object($prevresponse['attachment']) && is_object($newresponse['attachment']) &&
             ($prevresponse['attachment']->__toString() == $newresponse['attachment']->__toString());
     }
@@ -142,30 +140,32 @@ class qtype_manip_question extends question_graded_automatically {
         $stored_file = $response['attachment']->get_files();
         // error_log('grade_response ($stored_files) :: '. print_r($stored_file, true));
         $file = array_shift($stored_file);
-        
-        // ZipArchive seem to only be able to open files and stored_file does 
-        // not let us read the file directly - so we have to copy_content_to 
+
+        // ZipArchive seem to only be able to open files and stored_file does
+        // not let us read the file directly - so we have to copy_content_to
         // somewhere else.
-        $zipfilename = tempnam(sys_get_temp_dir(), 'm');        
+        $zipfilename = tempnam(sys_get_temp_dir(), 'm');
         if (!$file->copy_content_to($zipfilename)) {
             // TODO: Log this error which, really, should not happen.
             return array(0, question_state::$invalid); // TODO: test this out
         }
-        
+
         $zip = new ZipArchive;
         if ($zip->open($zipfilename) === TRUE) {
             $content =  $zip->getFromName('word/document.xml');
             $zip->close();
         } else {
-            // TODO LOG TO COURSE
+            // TODO LOG TO COURSE (if it's possible to find course id - otherwise
+            // log to system log)
             debugging('zip file could not be opened');
             return array(0, question_state::$invalid); // TODO: test this out
         }
 
         // GRADING WITH STRPOS
         // Si le système demeure "tout ou rien", strpos est plus rapide que preg_match_all
-        // Ça ne fonctionne pas, par contre, si on veut évaluer en fonction du 
-        // nombre d'occurence trouvées.
+        // Ça ne fonctionne pas, par contre, si on veut évaluer en fonction du
+        // nombre d'occurence trouvées ou que les "patterns" deviennent plus complexes, il
+        // pourrait être nécessaire d'utiliser preg_match_all.
         $pos = strpos($content, $this->regex);
         if ($pos === FALSE) {
             //add_to_log()
@@ -173,13 +173,13 @@ class qtype_manip_question extends question_graded_automatically {
         } else {
             $fraction = 1.0;
         }
-        
+
         /*
         //// GRADING WITH PREG_MATCH_ALL
         // Unless the patterns are real regex, strpos is faster and simpler.
         $result = preg_match_all($this->regex, $content, $out);
         error_log('grade_response (result) :: '. $result);
-        
+
         if (($result === FALSE) && (preg_last_error() != PREG_NO_ERROR)) {
             if (preg_last_error() == PREG_INTERNAL_ERROR) {
                 error_log('There is an internal error!');
@@ -197,7 +197,7 @@ class qtype_manip_question extends question_graded_automatically {
                 error_log('Bad UTF8 offset error!');
             }
             // TODO: trouver comment retourner une question clairement invalide,
-            // pour éviter que le résultat ne compte (et permettre à l'étudiant 
+            // pour éviter que le résultat ne compte (et permettre à l'étudiant
             // d'envoyer un autre fichier?)
             return array(0, question_state::$invalid); // TODO: test this out
         } elseif ($result > 0) {
@@ -206,7 +206,7 @@ class qtype_manip_question extends question_graded_automatically {
             $fraction = 0.0;
         }
         */
-        
+
         // Delete temporary file
         unlink($zipfilename);
 
@@ -217,15 +217,15 @@ class qtype_manip_question extends question_graded_automatically {
         if ($component == 'question' && $filearea == 'answerfeedback') {
             $answerid = reset($args); // itemid is answer id.
             $response = $qa->get_last_qt_var('answer', '');
-            
+
             return $options->feedback &&
-                    // TODO: test this condition...
+                    // TODO: test this condition
                     ($answerid == $this->correctanswerid && $response);
 
         } elseif ($component == 'question' && $filearea == 'response_attachment') {
             $answerid = reset($args); // itemid is answer id and should match attemptstepid
             $response = $qa->get_last_qt_var('attachment', '');
-            
+
             $i = $qa->get_reverse_step_iterator();
             while($i->valid()) {
                 if ($i->current()->get_id() == $answerid) {
@@ -234,7 +234,7 @@ class qtype_manip_question extends question_graded_automatically {
                 $i->next();
             }
             return false;
-            
+
         } else {
             return parent::check_file_access($qa, $options, $component, $filearea,
                     $args, $forcedownload);

@@ -67,7 +67,7 @@ class qtype_manip_renderer extends qtype_renderer {
     public function files_read_only(question_attempt $qa, question_display_options $options) {
         $files = $qa->get_last_qt_files('attachment', $options->context->id);
         $output = array();
-        
+
         foreach ($files as $file) {
             $mimetype = $file->get_mimetype();
             $output[] = html_writer::tag('p', html_writer::link($qa->get_response_file_url($file),
@@ -89,7 +89,7 @@ class qtype_manip_renderer extends qtype_renderer {
         global $CFG, $PAGE;
         require_once($CFG->dirroot . '/lib/form/filemanager.php');
 
-        // TODO: voir si on peut limiter la taille limite du fichier.
+        // TODO: voir si on peut limiter la taille du fichier.
         $pickeroptions = new stdClass();
         $pickeroptions->accepted_types = array('.docx');
         $pickeroptions->mainfile = null;
@@ -107,7 +107,7 @@ class qtype_manip_renderer extends qtype_renderer {
         ));
         $PAGE->requires->string_for_js('copyfile', 'qtype_manip');
         $PAGE->requires->string_for_js('copyfiletext', 'qtype_manip');
-        
+
         return form_filemanager_render($pickeroptions) . html_writer::empty_tag(
                 'input', array('type' => 'hidden', 'name' => $qa->get_qt_field_name('attachment'),
                 'value' => $pickeroptions->itemid));

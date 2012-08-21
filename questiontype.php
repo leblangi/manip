@@ -119,7 +119,7 @@ class qtype_manip extends question_type {
             $DB->insert_record('question_manip', $options);
         }
 
-        // $this->save_hints($question); // TODO: à confirmer - pas de hints a priori...
+        // $this->save_hints($question); // TODO: à confirmer - pas de hints a priori
 
         return true;
     }
@@ -263,9 +263,9 @@ class qtype_manip extends question_type {
             '<w:ind w:right="1134"' => 'Retrait à droite 2 cm',
         );
     }
-        
+
     // Override question_type::import_from_xml, but keep code as similar as possible.
-    public function import_from_xml($data, $question, $format, $extra=null) {        
+    public function import_from_xml($data, $question, $format, $extra=null) {
         $question_type = $data['@']['type'];
         if ($question_type != $this->name()) {
             return false;
@@ -311,17 +311,17 @@ class qtype_manip extends question_type {
 
             $qo->$varname = $ans->feedback;
             /// ****** END 'manip'-specific code
-            
+
             if (is_array($extraanswersfields)) {
                 foreach ($extraanswersfields as $field) {
                     $qo->{$field}[$a_count] =
                         $format->getpath($answer, array('#', $field, 0, '#'), '');
                 }
             }
-            
+
             ++$a_count;
         }
-        
+
         return $qo;
     }
 }
