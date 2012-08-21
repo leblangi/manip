@@ -105,6 +105,8 @@ class qtype_manip_renderer extends qtype_renderer {
             'fullpath' => '/question/type/manip/module.js',
             'requires' => array('base', 'dom', 'node', 'node-base', 'event', 'widget-base', 'selector-css3', 'event-valuechange'),
         ));
+        $PAGE->requires->string_for_js('copyfile', 'qtype_manip');
+        $PAGE->requires->string_for_js('copyfiletext', 'qtype_manip');
         
         return form_filemanager_render($pickeroptions) . html_writer::empty_tag(
                 'input', array('type' => 'hidden', 'name' => $qa->get_qt_field_name('attachment'),
