@@ -39,7 +39,7 @@ class qtype_manip_renderer extends qtype_renderer {
             question_display_options $options) {
 
         $question = $qa->get_question();
-        
+
         $files = '';
         if (empty($options->readonly)) {
             $files = $this->files_input($qa, $question->attachment, $options);

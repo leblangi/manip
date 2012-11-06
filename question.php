@@ -33,15 +33,15 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_manip_question extends question_graded_automatically {
-    public $correctanswerid;    
+    public $correctanswerid;
     public $feedbackcorrect;
-    
+
     public $incorrectanswerid;
     public $feedbackincorrect;
-    
+
     public $regex;
     public $regexother;
-    
+
     public $result;
     private $error;
 
@@ -54,7 +54,7 @@ class qtype_manip_question extends question_graded_automatically {
         // error_log('get_correct_response');
         return null;
     }
-    
+
 
     // Si on veut forcer le type de question à n'être évalué qu'en deferredfeedback.
     /*
@@ -62,7 +62,7 @@ class qtype_manip_question extends question_graded_automatically {
         return question_engine::make_archetypal_behaviour('deferredfeedback', $qa);
     }
     */
-    
+
     public function summarise_response(array $response) {
         //error_log('summarise_response');
         if ($this->is_complete_response($response)) {
@@ -77,7 +77,7 @@ class qtype_manip_question extends question_graded_automatically {
         if (!$this->is_complete_response($response)) {
            return array($this->id => question_classified_response::no_response());
         }
-        
+
         list($fraction) = $this->grade_response($response);
         if ($this->result) {
             return array($this->id => new question_classified_response(0,
