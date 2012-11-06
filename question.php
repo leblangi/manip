@@ -42,6 +42,7 @@ class qtype_manip_question extends question_graded_automatically {
     public $regex;
     public $regexother;
 
+    public $attachment;
     public $result;
     private $error;
 
