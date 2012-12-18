@@ -35,11 +35,9 @@ defined('MOODLE_INTERNAL') || die();
  */
 class qtype_manip_renderer extends qtype_renderer {
 
-    public function formulation_and_controls(question_attempt $qa,
-            question_display_options $options) {
-
+    public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
+        global $OUTPUT, $PAGE;
         $question = $qa->get_question();
-
         $files = '';
         if (empty($options->readonly)) {
             $files = $this->files_input($qa, $question->attachment, $options);
@@ -52,9 +50,22 @@ class qtype_manip_renderer extends qtype_renderer {
                 array('class' => 'qtext'));
 
         $result .= html_writer::start_tag('div', array('class' => 'ablock'));
-        $result .= html_writer::tag('div', $files, array('class' => 'attachment'));
+        $result .= html_writer::tag('div', $files, array('class' => 'attachments'));
         $result .= html_writer::end_tag('div');
 
+		if ($this->is_first_qa($qa, $options)) {
+            $copytoall = html_writer::tag('input', null, array('id' => 'manip-button', 'type' => 'button',
+                'value' => get_string('copyfile', 'qtype_manip')));
+            $copytoall .= $OUTPUT->help_icon('copyfile', 'qtype_manip');
+            $result .= html_writer::tag('div', $copytoall, array('class' => 'copytoallsection'));
+
+            $PAGE->requires->js_init_call('M.qtype_manip.initUpload', array(), true, array(
+                'name'     => 'qtype_manip',
+                'fullpath' => '/question/type/manip/module.js',
+                'requires' => array('base', 'dom', 'node', 'node-base', 'event', 'widget-base', 'selector-css3', 'event-valuechange'),
+            ));
+            $PAGE->requires->strings_for_js(array('copyfileerrormsg', 'copyfilewarningmsg', 'copyfilesuccessmsg', 'filecopiedfromquestion'), 'qtype_manip');
+        }
         return $result;
     }
 
@@ -100,17 +111,36 @@ class qtype_manip_renderer extends qtype_renderer {
         // TODO: même ligne que deux lignes plus haut, mais c'est comme ça dans "essay". Pourquoi???
         //$pickeroptions->itemid = $qa->prepare_response_files_draft_itemid('attachment', $options->context->id);
 
-        $PAGE->requires->js_init_call('M.qtype_manip.initUpload', array($qa->get_usage_id(), $qa->get_slot()), true, array(
-            'name'     => 'qtype_manip',
-            'fullpath' => '/question/type/manip/module.js',
-            'requires' => array('base', 'dom', 'node', 'node-base', 'event', 'widget-base', 'selector-css3', 'event-valuechange'),
-        ));
-        $PAGE->requires->string_for_js('copyfile', 'qtype_manip');
-        $PAGE->requires->string_for_js('copyfiletext', 'qtype_manip');
-
         return form_filemanager_render($pickeroptions) . html_writer::empty_tag(
                 'input', array('type' => 'hidden', 'name' => $qa->get_qt_field_name('attachment'),
                 'value' => $pickeroptions->itemid));
     }
 
+    /**
+     * Verify is the question attempt is the first of this page of for this question type
+     * @param question_attempt $qa the question attempt to display.
+     * @param question_display_options $options controls what should and should
+     *      not be displayed. Used to get the context.
+     * @return if the question attempt is the first of this question type
+     */
+    public function is_first_qa(question_attempt $qa, question_display_options $options) {
+        if (get_class($options) == 'mod_quiz_display_options') {
+            $attemptid = required_param('attempt', PARAM_INT);
+            $page = optional_param('page', 0, PARAM_INT);
+            $attemptobj = quiz_attempt::create($attemptid);
+            
+            // Get the list of questions needed by this page.
+            $slots = $attemptobj->get_slots($page);
+            
+            // Verify all the questions and for the first one of qtype manip return if its the same or not
+            foreach ($slots as $key => $slot) {
+                $sqa = $attemptobj->get_question_attempt($slot);
+                $subquestion = $sqa->get_question();
+                if ($subquestion->get_type_name() == 'manip') {
+                    return ($qa->get_database_id() == $sqa->get_database_id());
+                }
+            }
+        }
+        return false;
+    }
 }

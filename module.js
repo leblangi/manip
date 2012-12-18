@@ -13,22 +13,27 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Question type class for the true-false question type.
+ */
+
+/**
+ * JavaScript required by the manip question type.
  *
  * @package    qtype
  * @subpackage manip
- * @copyright  2012 Université de Montréal
+ * @copyright 2012 Cégep@distance
+ * @author mathieu.petitclair@gmail.com
+ * @author contact@gpleblanc.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 M.qtype_manip = M.qtype_manip || {};
 
-M.qtype_manip.fields = M.qtype_manip.fields || [];
-M.qtype_manip.slots = M.qtype_manip.slots || [];
-
-M.qtype_manip.initUpload = function(Y, qubaid, slot) {
-
+/**
+ * Initialise the upload button
+ * 
+ * @param {object} Y the global YUI object
+ */
+M.qtype_manip.initUpload = function(Y) {
     /* 哎呀! Le plan :
      * Au "load", on note tous les itemid
      * Puis quand on appuie sur le bouton magique :
@@ -36,68 +41,71 @@ M.qtype_manip.initUpload = function(Y, qubaid, slot) {
      *  - on change la note pour dire "fichier soumis automatiquement"
      *  - on cache le bouton du filemanager pour cette question-la?
      *     - Non : on laisse la possibilité à l'usager de soumettre un autre fichier.
-     * Vermeilleux.
+     * Merveilleux.
      */
 
-    /* For each question in the page, we save the relevant information */
-    M.qtype_manip.fields[slot] = '#q' + slot + ' input[name=q' + qubaid + ':' + slot + '_attachment]';
-    M.qtype_manip.slots.push(slot);
+    var questionNodes = Y.all('div.manip');
 
-    var questions = Y.all('div.manip');
-    var question = questions.shift();
+    // Remove the first question from the list
+    var firstQuestionNode = questionNodes.shift();
 
-    /* Show the button only once, after the first occurence of this question type */
-    if (question.get('id') != 'q' + slot)
+    // If there is only one question of this type in the page, it is unnecessary to display the button.
+    if (questionNodes.size() == 0) {
         return;
+    }
+    
+    /* Show the section containing the button only when the script is loaded.
+     Also avoid to show the button if javascript is disabled */
+    var copytoallsection = Y.one(".copytoallsection");
+    copytoallsection.addClass("enabled");
 
-    // Add the magic button
-    var form = Y.one('#responseform div');
-    var button = Y.Node.create(
-            '<div class="que"><div class="info"></div>' +
-            '<div class="content"><div class="formulation">' +
-            '<input id="manip-button" type="submit" value="' +
-            M.util.get_string('copyfile', 'qtype_manip') + '"/>' +
-            '<span>' + M.util.get_string('copyfiletext', 'qtype_manip') + '</span>' +
-            '</div></div></div>');
-    form.insert(button, question.next());
-
-    var button = Y.one('#manip-button');
+    var button = copytoallsection.one('#manip-button');
     var buttonOnClick = function(e) {
         e.preventDefault();
-        //console.log(M.qtype_manip.slots);
-        var q1id = M.qtype_manip.slots[0];
-        var q1field = M.qtype_manip.fields[q1id];
-        //console.log('id:'+q1id + ' field:'+q1field);
-        var value = Y.one(q1field).get('value');
-        //console.log('q1Value:'+value);
-        var firstField = null;
-        for(var i in M.qtype_manip.slots) {
-            if (firstField == null) {
-                firstField = i;
-            } else {
-                //console.log('i:'+i);
-                var slot = M.qtype_manip.slots[i];
-                var field = M.qtype_manip.fields[slot];
-                //console.log('old : '+Y.one(field).get('value'));
-                Y.one(field).set('value', value);
-                //console.log('new : '+Y.one(field).get('value'));
-                var textField = Y.one('#q' + slot + ' .attachment .filemanager-container > div');
-                textField.set('text', 'File copied from question #' + q1id);
+        //If a file has already been submitted in the first field
+        if (firstQuestionNode.one('.attachments .filemanager-container ul')) {
+            // For each question, we update the value of the answer by using the one of the first question
+            var allAvailable = true;
+            questionNodes.each(function(node, i) {
+                if (!node.one('.attachments .filemanager-container ul')) {
+                    // Reset the filepicker state
+                    var toolbarNode = node.one('.attachments .filemanager-toolbar');
+                    toolbarNode.all('input[type=button]').setStyle('display', 'none');
+                    toolbarNode.one('input.fm-btn-add').setStyle('display', 'inline');
+                    // Put the new information in the filepicker
+                    var messageNode = node.one('.attachments .filemanager-container div.mdl-align');
+                    var newMessage = M.str.qtype_manip.filecopiedfromquestion + firstQuestionNode.one(".info .no .qno").get("text");
+                    messageNode.set('text', newMessage);
+                    node.one(".attachments input[type=hidden]").set('value', firstQuestionNode.one(".attachments input[type=hidden]").get('value'));
+                }else{
+                    allAvailable = false;
+                }
+            });
+            if (allAvailable) {
+                M.qtype_manip.displayMessage(M.str.qtype_manip.copyfilesuccessmsg, 'success', copytoallsection, true);
+            }else{
+                M.qtype_manip.displayMessage(M.str.qtype_manip.copyfilewarningmsg, 'warning', copytoallsection, true);
             }
+        }else{
+            // For each question. if necessary, we reset the message if the question has not been answered manually
+            questionNodes.each(function(node, i){
+                if (!node.one('.attachments .filemanager-container ul')) {
+                    var messageNode = node.one('.attachments .filemanager-container div.mdl-align');
+                    var newMessage = firstQuestionNode.one('.attachments .filemanager-container div.mdl-align').get('text');
+                    messageNode.set('text', newMessage);
+                }
+            });
+            M.qtype_manip.displayMessage(M.str.qtype_manip.copyfileerrormsg, 'error', copytoallsection);
         }
-        return false;
     }
-
     button.on('click', buttonOnClick);
-
-    /* L'itemid a la forme "q46:2_attachment" // 46 est le qubaid, 2 est le
-     * slotid et attachement est le nom de la variable.
-     */
-    var varName = 'q' + qubaid + ':' + slot + "_attachment";
-    var hiddenItemID = Y.one('#q' + slot + ' input[name=' + varName + ']');
-    var demo = Y.one('#q' + slot + ' input[id^=btnadd-]');
 }
 
+/**
+ * Initialise the question form
+ * 
+ * @param {object} Y the global YUI object
+ */
 M.qtype_manip.initQuestionForm = function(Y) {
     var setRegex = function() {
         var _select = Y.one('#id_regex'),
@@ -114,3 +122,32 @@ M.qtype_manip.initQuestionForm = function(Y) {
     // do it onChange
     Y.one('#id_regex').on('change', setRegex);
 };
+
+/**
+ * Add a message to display
+ * 
+ * @param {string} msg the message to display
+ * @param {string} type the type of message (warning, error or success)
+ * @param {object} refNode the node used as reference to add the message just before it
+ * @param {boolean} closeOpt if the message can be deleted
+ */
+M.qtype_manip.displayMessage = function(msg, type, refNode, closeOpt) {
+    var parent = refNode.ancestor();
+    parent.all('.msg').remove();
+    
+    // Display the message
+    var msg = parent.insertBefore('<div class="msg '+type+'" ><p>' + msg + '</p></div>', refNode);
+    
+    // Add a close link to remove the display message
+    if (closeOpt){
+        var str = M.str.repository.close;
+        msg.insert('<a href="#" class="closeLink" title="' + str + '">' + str + '</a>');
+        if (this._closeLinkListener) {
+             this._closeLinkListener.detach();
+        }
+        this._closeLinkListenerlink = msg.one("a.closeLink").on("click",function(e, msg){
+            e.preventDefault();
+            msg.remove();
+        },this, msg);
+    }
+}
