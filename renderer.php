@@ -53,7 +53,7 @@ class qtype_manip_renderer extends qtype_renderer {
         $result .= html_writer::tag('div', $files, array('class' => 'attachments'));
         $result .= html_writer::end_tag('div');
 
-		if ($this->is_first_qa($qa, $options)) {
+		if ($this->is_first_qa($qa, $options) && empty($options->readonly)) {
             $copytoall = html_writer::tag('input', null, array('id' => 'manip-button', 'type' => 'button',
                 'value' => get_string('copyfile', 'qtype_manip')));
             $copytoall .= $OUTPUT->help_icon('copyfile', 'qtype_manip');
