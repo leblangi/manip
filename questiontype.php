@@ -39,6 +39,10 @@ class qtype_manip extends question_type {
         return array('question_manip', 'regex', 'correct', 'incorrect');
     }
     
+    public function questionid_column_name() {
+        return 'question';
+    }
+    
     public function save_question_options($question) {
         global $DB;
         $result = new stdClass();
@@ -129,6 +133,7 @@ class qtype_manip extends question_type {
                 $answers[$questiondata->options->correct]->feedbackformat;
         $question->feedbackincorrectformat =
                 $answers[$questiondata->options->incorrect]->feedbackformat;
+        $question->regex =  $questiondata->options->regex;
         $question->correctanswerid =  $questiondata->options->correct;
         $question->incorrectanswerid = $questiondata->options->incorrect;
     }
@@ -158,13 +163,6 @@ class qtype_manip extends question_type {
 
     public function response_file_areas() {
         return array('attachment');
-    }
-
-    public function delete_question($questionid, $contextid) {
-        global $DB;
-        $DB->delete_records('question_manip', array('question' => $questionid));
-
-        parent::delete_question($questionid, $contextid);
     }
 
     public function move_files($questionid, $oldcontextid, $newcontextid) {

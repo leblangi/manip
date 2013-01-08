@@ -44,14 +44,13 @@ class qtype_manip_edit_form extends question_edit_form {
     protected function definition_inner($mform) {
         global $PAGE;
 
-        $qtype = question_bank::get_qtype('manip');
-
         $PAGE->requires->js_init_call('M.qtype_manip.initQuestionForm', null, true, array(
             'name'     => 'qtype_manip',
             'fullpath' => '/question/type/manip/module.js',
-            'requires' => array('base', 'dom', 'node', 'event', 'widget-base', 'array'),
+            'requires' => array('base', 'dom', 'node', 'event', 'widget-base'),
         ));
 
+        $qtype = question_bank::get_qtype('manip');
         $mform->addElement('select', 'regexselector',
                 get_string('regexselector', 'qtype_manip'), $qtype->get_regex());
         $mform->addHelpButton('regexselector', 'regexselector', 'qtype_manip');
@@ -129,11 +128,12 @@ class qtype_manip_edit_form extends question_edit_form {
             );
             $question->feedbackincorrect['itemid'] = $draftid;
         }
-        $question->regex = $question->options->regex;
-        
+        if (!empty($question->options->regex)) {
+            $question->regex = $question->options->regex;
+        }
         
         $qtype = question_bank::get_qtype('manip');
-        if (array_key_exists($question->options->regex, $qtype->get_regex())) {
+        if (!empty($question->options->regex) && array_key_exists($question->options->regex, $qtype->get_regex())) {
             $question->regexselector = $question->options->regex;
         }else{
             $question->regexselector = 'custom';
