@@ -100,10 +100,6 @@ class qtype_manip extends question_type {
 
         //debugging('$question :: '. print_r($question, true));
 
-        if ($question->regex == 'other') {
-            $question->regex = $question->regexother;
-        }
-
         // Save question options in question_manip table
         if ($options = $DB->get_record('question_manip', array('question' => $question->id))) {
             $options->regex = $question->regex;
@@ -207,8 +203,7 @@ class qtype_manip extends question_type {
 
     public function get_regex() {
         return array(
-            // TODO: set all strings to be translatable?
-            'other' => get_string('otherregex', 'qtype_manip'),
+            'custom' => get_string('customregex', 'qtype_manip'),
             '<w:pStyle w:val="En-tte"' => 'En-tête',
             '<pic:cNvPr id="0" name="nom_image.jpg"/>' => 'Image insérée avec nom du fichier',
             '<wp:cNvGraphicFramePr>' => 'Images insérées',

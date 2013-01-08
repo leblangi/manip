@@ -43,21 +43,23 @@ class qtype_manip_edit_form extends question_edit_form {
      */
     protected function definition_inner($mform) {
         global $PAGE;
-        
+
+        $qtype = question_bank::get_qtype('manip');
+
         $PAGE->requires->js_init_call('M.qtype_manip.initQuestionForm', null, true, array(
             'name'     => 'qtype_manip',
             'fullpath' => '/question/type/manip/module.js',
-            'requires' => array('base', 'dom', 'node', 'event', 'widget-base'),
+            'requires' => array('base', 'dom', 'node', 'event', 'widget-base', 'array'),
         ));
-        
-        $qtype = question_bank::get_qtype('manip');
-        $mform->addElement('select', 'regex',
-                get_string('regex', 'qtype_manip'), $qtype->get_regex());
-        $mform->addHelpButton('regex', 'regex', 'qtype_manip');
 
-        $mform->addElement('text', 'regexother', get_string('regexother', 'qtype_manip'), array('size' => '75'));
-        $mform->setType('regexother', PARAM_RAW);
-        $mform->addHelpButton('regexother', 'regexother', 'qtype_manip');
+        $mform->addElement('select', 'regexselector',
+                get_string('regexselector', 'qtype_manip'), $qtype->get_regex());
+        $mform->addHelpButton('regexselector', 'regexselector', 'qtype_manip');
+
+        $mform->addElement('text', 'regex', get_string('regex', 'qtype_manip'), array('size' => '75'));
+        $mform->setType('regex', PARAM_RAW);
+        $mform->addHelpButton('regex', 'regex', 'qtype_manip');
+        $mform->addRule('regex', get_string('required'), 'required', null, 'client');
 
         $mform->addElement('editor', 'feedbackcorrect', get_string('feedbackcorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
         $mform->setType('feedbackcorrect', PARAM_RAW);
@@ -127,13 +129,14 @@ class qtype_manip_edit_form extends question_edit_form {
             );
             $question->feedbackincorrect['itemid'] = $draftid;
         }
-
-        if (!empty($question->options->regex)) {
-            $qtype = question_bank::get_qtype('manip');
-            if (!array_key_exists($question->options->regex, $qtype->get_regex())) {
-                $question->regexother = $question->options->regex;
-                $question->regex = 'other';
-            }
+        $question->regex = $question->options->regex;
+        
+        
+        $qtype = question_bank::get_qtype('manip');
+        if (array_key_exists($question->options->regex, $qtype->get_regex())) {
+            $question->regexselector = $question->options->regex;
+        }else{
+            $question->regexselector = 'custom';
         }
 
         return $question;

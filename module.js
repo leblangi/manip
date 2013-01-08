@@ -107,20 +107,38 @@ M.qtype_manip.initUpload = function(Y) {
  * @param {object} Y the global YUI object
  */
 M.qtype_manip.initQuestionForm = function(Y) {
+    var select = Y.one('#id_regexselector');
+    var regex = Y.one('#id_regex');
+    // Set the regular expression based on the one choosen on the select list
     var setRegex = function() {
-        var _select = Y.one('#id_regex'),
-            _other = Y.one('#id_regexother');
-
-        if (_select.get('value') != 'other') {
-            _other.set('disabled', 'true');
-        } else {
-            _other.set('disabled', null);
+        var option = select.get('value');
+        if (option != 'custom') {
+            regex.set('value', option);
         }
     }
-    // do it on page load
-    setRegex();
-    // do it onChange
-    Y.one('#id_regex').on('change', setRegex);
+    // Update the selection in the select list based on the value in the regex input field
+    var setRegexSelector = function() {
+        var iscustom = true;
+        select.get("options").each( function() {
+            var selected = this.get('selected');
+            var value  = this.get('value');
+             if (selected) {
+                this.set('selected', null);
+            }
+            if (value == regex.get('value')) {
+                this.set('selected', 'selected');
+                iscustom = false;
+            }
+        });
+        if (iscustom) {
+            select.one('option[value=custom]').set('selected', 'selected');
+        }
+    }
+    
+    // Do it on change or on keyup
+    select.on('change', setRegex);
+    select.on('keyup', setRegex);
+    regex.on('keyup', setRegexSelector);
 };
 
 /**
