@@ -166,18 +166,18 @@ class qtype_manip_question extends question_graded_automatically {
         // Ça ne fonctionne pas, par contre, si on veut évaluer en fonction du
         // nombre d'occurence trouvées ou que les "patterns" deviennent plus complexes, il
         // pourrait être nécessaire d'utiliser preg_match_all.
-        $pos = strpos($content, $this->regex);
+        /*$pos = strpos($content, $this->regex);
         if ($pos === FALSE) {
             //add_to_log()
             $fraction = 0.0;
         } else {
             $fraction = 1.0;
-        }
+        }*/
 
-        /*
         //// GRADING WITH PREG_MATCH_ALL
         // Unless the patterns are real regex, strpos is faster and simpler.
-        $result = preg_match_all($this->regex, $content, $out);
+        $regex = "/" . $this->regex . "/";
+        $result = preg_match_all($regex, $content, $out);
         error_log('grade_response (result) :: '. $result);
 
         if (($result === FALSE) && (preg_last_error() != PREG_NO_ERROR)) {
@@ -205,7 +205,6 @@ class qtype_manip_question extends question_graded_automatically {
         } else {
             $fraction = 0.0;
         }
-        */
 
         // Delete temporary file
         unlink($zipfilename);
