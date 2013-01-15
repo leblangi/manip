@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 class qtype_manip extends question_type {
 
     public function extra_question_fields() {
-        return array('question_manip', 'regex', 'correct', 'incorrect');
+        return array('question_manip', 'regex', 'minocc', 'maxocc', 'correct', 'incorrect');
     }
 
     public function questionid_column_name() {
@@ -107,6 +107,8 @@ class qtype_manip extends question_type {
         // Save question options in question_manip table
         if ($options = $DB->get_record('question_manip', array('question' => $question->id))) {
             $options->regex = $question->regex;
+            $options->minocc = $question->minocc;
+            $options->maxocc = $question->maxocc;
             $options->correct = $correctid;
             $options->incorrect = $incorrectid;
             $DB->update_record('question_manip', $options);
@@ -114,6 +116,8 @@ class qtype_manip extends question_type {
             $options = new stdClass();
             $options->question    = $question->id;
             $options->regex = $question->regex;
+            $options->minocc = $question->minocc;
+            $options->maxocc = $question->maxocc;
             $options->correct = $correctid;
             $options->incorrect = $incorrectid;
             $DB->insert_record('question_manip', $options);
@@ -134,6 +138,8 @@ class qtype_manip extends question_type {
         $question->feedbackincorrectformat =
                 $answers[$questiondata->options->incorrect]->feedbackformat;
         $question->regex =  $questiondata->options->regex;
+        $question->minocc =  $questiondata->options->minocc;
+        $question->maxocc =  $questiondata->options->maxocc;
         $question->correctanswerid =  $questiondata->options->correct;
         $question->incorrectanswerid = $questiondata->options->incorrect;
     }

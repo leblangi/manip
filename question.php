@@ -40,6 +40,9 @@ class qtype_manip_question extends question_graded_automatically {
     public $feedbackincorrect;
 
     public $regex;
+    
+    public $minocc;
+    public $maxocc;
 
     public $attachment;
     public $result;
@@ -193,14 +196,15 @@ class qtype_manip_question extends question_graded_automatically {
             else if (preg_last_error() == PREG_BAD_UTF8_ERROR) {
                 error_log('Bad UTF8 error!');
             }
-            else if (preg_last_error() == PREG_BAD_UTF8_ERROR) {
+            else if (preg_last_error() == PREG_BAD_UTF8_OFFSET_ERROR) {
                 error_log('Bad UTF8 offset error!');
             }
             // TODO: trouver comment retourner une question clairement invalide,
             // pour éviter que le résultat ne compte (et permettre à l'étudiant
             // d'envoyer un autre fichier?)
             return array(0, question_state::$invalid); // TODO: test this out
-        } elseif ($result > 0) {
+        // If the minimum occurence is reached and if the maximum is not exceeded or unlimited, the answer is correct.
+        } elseif ($result >= $this->minocc && ((!empty($this->minocc) && $result <= $this->maxocc) || empty($this->maxocc))) {
             $fraction = 1.0;
         } else {
             $fraction = 0.0;

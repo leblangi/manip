@@ -70,6 +70,8 @@ class restore_qtype_manip_plugin extends restore_qtype_plugin {
             // Adjust some columns
             $data->question = $newquestionid;
             $data->regex = $data->regex;
+            $data->minocc = $data->minocc;
+            $data->maxocc = $data->maxocc;
             $data->correct = $this->get_mappingid('question_answer', $data->correct);
             $data->incorrect = $this->get_mappingid('question_answer', $data->incorrect);
             // Insert record

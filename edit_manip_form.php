@@ -60,6 +60,16 @@ class qtype_manip_edit_form extends question_edit_form {
         $mform->addHelpButton('regex', 'regex', 'qtype_manip');
         $mform->addRule('regex', get_string('required'), 'required', null, 'client');
 
+        $mform->addElement('text', 'minocc', get_string('minocc', 'qtype_manip'), array('size' => '4'));
+        $mform->setType('minocc', PARAM_INT);
+        $mform->addHelpButton('minocc', 'minocc', 'qtype_manip');
+        $mform->addRule('minocc', get_string('required'), 'required', null, 'client');
+
+        $mform->addElement('text', 'maxocc', get_string('maxocc', 'qtype_manip'), array('size' => '4'));
+        $mform->setType('maxocc', PARAM_INT);
+        $mform->addHelpButton('maxocc', 'maxocc', 'qtype_manip');
+        $mform->setDefault('maxocc', 0);
+
         $mform->addElement('editor', 'feedbackcorrect', get_string('feedbackcorrect', 'qtype_manip'), array('rows' => 10), $this->editoroptions);
         $mform->setType('feedbackcorrect', PARAM_RAW);
         $mform->addHelpButton('feedbackcorrect', 'feedbackcorrect', 'qtype_manip');
@@ -131,7 +141,15 @@ class qtype_manip_edit_form extends question_edit_form {
         if (!empty($question->options->regex)) {
             $question->regex = $question->options->regex;
         }
-        
+
+        if (!empty($question->options->minocc)) {
+            $question->minocc = $question->options->minocc;
+        }
+
+        if (!empty($question->options->maxocc)) {
+            $question->maxocc = $question->options->maxocc;
+        }
+
         $qtype = question_bank::get_qtype('manip');
         if (!empty($question->options->regex) && array_key_exists($question->options->regex, $qtype->get_regex())) {
             $question->regexselector = $question->options->regex;
@@ -146,4 +164,34 @@ class qtype_manip_edit_form extends question_edit_form {
         return 'manip';
     }
 
+    /**
+     * Custom validation to check if the regex is valid and if the minocc and maxocc are coherent
+     *
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
+    public function validation($data, $files)  {
+        $errors = parent::validation($data, $files);
+        $regex = $data['regex'];
+        $minocc = $data['minocc'];
+        $maxocc = $data['maxocc'];
+
+        // If not valid regex
+        if (@preg_match("/" . $regex . "/", '') === false) {
+            $errors['regex'] = get_string('regexerror', 'qtype_manip');
+        }
+
+        // If minocc is not greater or equal to 1
+        if ($minocc < 1) {
+            $errors['minocc'] = get_string('minoccerror', 'qtype_manip');
+        }
+
+        // If maxocc is not greater or equal to minocc
+        if ($maxocc < $minocc && $maxocc != 0) {
+            $errors['maxocc'] = get_string('maxoccerror', 'qtype_manip');
+        }
+ 
+        return $errors;
+    }
 }

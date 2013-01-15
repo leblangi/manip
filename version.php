@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_manip';
-$plugin->version  = 2012071602;
+$plugin->version  = 2013011406;
 
 $plugin->requires = 2011060313;
 
