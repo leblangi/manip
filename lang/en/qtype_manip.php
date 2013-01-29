@@ -54,10 +54,11 @@ $string['filenotsubmitted'] = 'No file was received';
 $string['filenotreceived'] = 'No file was received from the student';
 $string['admindocxsnippets'] = 'Manage search patterns';
 $string['copyfile'] = 'Use this file for other questions';
-$string['copyfile_help'] = 'After uploading your file, click this button to automatically submit the same file for other questions of this type on this page.';
-$string['copyfilesuccessmsg'] = 'SUCCESS: The dropped file is now being used to other questions on the page.';
-$string['copyfileerrormsg'] = 'ERROR: Please upload a file before using this option.';
-$string['copyfilewarningmsg'] = 'WARNING: Some questions have been answered manually. Therefore, those questions will not use the file shared here.';
+$string['copyfile_help'] = 'After uploading your file, click this button to automatically submit the same file for other questions of this type on this page.<br />If no file is submitted, use this button to return other questions to their original state.';
+$string['copyfilesuccessmsg'] = 'The dropped file is now being used to other questions on the page.';
+$string['copyfileerrormsg'] = 'Please upload a file before using this option.';
+$string['copyfilewarningmsg'] = 'Some questions have been answered manually. Therefore, those questions will not use the file shared here.';
+$string['emptyfilewarningmsg'] = 'The file is no longer attached to this question.';
 $string['filecopiedfromquestion'] = 'File copied from question ';
 
 // $string[''] = '';

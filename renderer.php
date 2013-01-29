@@ -64,7 +64,7 @@ class qtype_manip_renderer extends qtype_renderer {
                 'fullpath' => '/question/type/manip/module.js',
                 'requires' => array('base', 'dom', 'node', 'node-base', 'event', 'widget-base', 'selector-css3', 'event-valuechange'),
             ));
-            $PAGE->requires->strings_for_js(array('copyfileerrormsg', 'copyfilewarningmsg', 'copyfilesuccessmsg', 'filecopiedfromquestion'), 'qtype_manip');
+            $PAGE->requires->strings_for_js(array('copyfileerrormsg', 'copyfilewarningmsg', 'copyfilesuccessmsg', 'filecopiedfromquestion', 'emptyfilewarningmsg'), 'qtype_manip');
         }
         return $result;
     }
@@ -111,7 +111,9 @@ class qtype_manip_renderer extends qtype_renderer {
         // TODO: même ligne que deux lignes plus haut, mais c'est comme ça dans "essay". Pourquoi???
         //$pickeroptions->itemid = $qa->prepare_response_files_draft_itemid('attachment', $options->context->id);
 
-        return form_filemanager_render($pickeroptions) . html_writer::empty_tag(
+        $fm = new form_filemanager($pickeroptions);
+        $filesrenderer = $this->page->get_renderer('core', 'files');
+        return $filesrenderer->render($fm) . html_writer::empty_tag(
                 'input', array('type' => 'hidden', 'name' => $qa->get_qt_field_name('attachment'),
                 'value' => $pickeroptions->itemid));
     }

@@ -264,7 +264,7 @@ class qtype_manip extends question_type {
     }
 
     // Override question_type::import_from_xml, but keep code as similar as possible.
-    public function import_from_xml($data, $question, $format, $extra=null) {
+    public function import_from_xml($data, $question, qformat_xml $format, $extra=null) {
         $question_type = $data['@']['type'];
         if ($question_type != $this->name()) {
             return false;

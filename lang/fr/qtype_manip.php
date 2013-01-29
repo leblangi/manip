@@ -53,11 +53,12 @@ $string['filesubmitted'] = 'Le fichier a été reçu';
 $string['filenotsubmitted'] = 'Aucun fichier n\'a été reçu';
 $string['filenotreceived'] = 'Aucun fichier n\'a été reçu de la part de l\'étudiant';
 $string['admindocxsnippets'] = 'Gestion des motifs de recherche';
-$string['copyfile'] = 'Utiliser ce fichier pour les autres questions';
-$string['copyfile_help'] = 'Après avoir téléchargé votre fichier, cliquez sur ce bouton pour automatiquement soumettre le même fichier aux autres questions de ce type sur cette page.';
-$string['copyfilesuccessmsg'] = 'SUCCÈS: Le fichier déposé est maintenant utilisé aux autres questions de la page.';
-$string['copyfileerrormsg'] = 'ERREUR: Veuillez déposer un fichier avant d\'utiliser cette option.';
-$string['copyfilewarningmsg'] = 'ATTENTION: Certaines questions ont été répondues manuellement. Par conséquent, ces questions n\'utiliseront donc pas le fichier partagé ici.';
+$string['copyfile'] = 'Utilisez ce fichier pour les autres questions';
+$string['copyfile_help'] = 'Après avoir téléchargé votre fichier, cliquez sur ce bouton pour automatiquement soumettre le fichier aux autres questions de ce type sur cette page.<br />Si aucun fichier n\'est soumis, utiliser ce bouton pour remettre les autres questions à leur état initial.';
+$string['copyfilesuccessmsg'] = 'Le fichier déposé est maintenant utilisé aux autres questions de la page.';
+$string['copyfileerrormsg'] = 'Veuillez déposer un fichier avant d\'utiliser cette option.';
+$string['copyfilewarningmsg'] = 'Certaines questions ont été répondues manuellement. Par conséquent, ces questions n\'utiliseront donc pas le fichier partagé ici.';
+$string['emptyfilewarningmsg'] = 'Le fichier n\'est plus attaché à cette question.';
 $string['filecopiedfromquestion'] = 'Fichier copié à partir de la question ';
 
 // $string[''] = '';

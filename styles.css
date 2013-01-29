@@ -1,6 +1,7 @@
 .que.manip .copytoallsection {display:none}
 .que.manip .copytoallsection.enabled {display:block}
-.que.manip .clearer {clear:none} /* Disable the clear to avoid unwanted empty white spaces */
+.que.manip .filemanager-container {clear:none} /* Disable the clear to avoid unwanted empty white spaces */
+.que.manip .filemanager.fm-manip-itemcopied {display:none}
 .que.manip .msg {
     padding:5px;
 	font-size:0.8em;
@@ -8,6 +9,10 @@
 	position: relative;
 	overflow:auto;
     margin-bottom:10px;
+}
+.que.manip .manip-message {
+    font-weight:bold;
+    color:#557755;
 }
 .que.manip .msg a{
     position:absolute;
